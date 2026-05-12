@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NexLoad – Free Video Downloader</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── Tokens ─────────────────────────────────────────────────────────── */
+    :root {
+      --bg:#f7f8fc; --bg2:#eef0f8; --bg3:#e5e7f5;
+      --white:#ffffff; --ink:#0f1023; --ink2:#3a3f6b; --muted:#7b80a8; --muted2:#b8bcda;
+      --border:#e4e6f2; --border2:#cdd0ea;
+      --blue:#4f46e5; --blue-light:#ede9fe; --blue-mid:#6366f1;
+      --green:#059669; --green-light:#d1fae5;
+      --amber:#d97706; --amber-light:#fef3c7;
+      --red:#dc2626; --red-light:#fee2e2;
+      --purple:#7c3aed; --purple-light:#f5f3ff;
+      --card-bg:var(--white); --card-border:var(--border);
+      --fh:'Plus Jakarta Sans',sans-serif; --fm:'JetBrains Mono',monospace;
+      --r:14px; --r-lg:20px; --shadow:0 2px 16px rgba(0,0,0,.07);
+    }
+    [data-theme="dark"] {
+      --bg:#0d0e1a; --bg2:#13152a; --bg3:#1a1d35;
+      --white:#1a1d35; --ink:#e8eaf6; --ink2:#a8aed4; --muted:#6b72a8; --muted2:#3d4270;
+      --border:#252845; --border2:#2e3260;
+      --blue:#6366f1; --blue-light:#1e1b4b; --blue-mid:#818cf8;
+      --green:#10b981; --green-light:#064e3b;
+      --amber:#f59e0b; --amber-light:#451a03;
+      --red:#ef4444; --red-light:#450a0a;
+      --purple:#a78bfa; --purple-light:#2e1065;
+      --card-bg:#13152a; --card-border:#252845;
+      --shadow:0 2px 20px rgba(0,0,0,.4);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--ink);font-family:var(--fh);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background .2s,color .2s}
+
+    /* ── Topbar ─────────────────────────────────────────────────────────── */
+    .topbar{background:var(--card-bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;backdrop-filter:blur(10px)}
+    .topbar-inner{max-width:720px;margin:0 auto;display:flex;align-items:center;gap:8px;padding:0 16px;height:54px}
+    .logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink);font-weight:800;font-size:1rem;letter-spacing:-.3px;flex-shrink:0}
+    .logo-mark{width:28px;height:28px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center}
+    .logo-mark svg{width:16px;height:16px}
+    .topbar-spacer{flex:1}
+    .topbar-badge{font-family:var(--fm);font-size:.58rem;font-weight:600;background:var(--blue-light);color:var(--blue);padding:3px 8px;border-radius:100px;flex-shrink:0}
+    .top-btn{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:.7rem;font-weight:600;color:var(--muted);cursor:pointer;font-family:var(--fh);transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:4px}
+    .top-btn:hover{border-color:var(--blue);color:var(--blue)}
+    .top-btn.active{background:var(--green-light);color:var(--green);border-color:var(--green)}
+
+    /* ── Page ───────────────────────────────────────────────────────────── */
+    .page{max-width:720px;margin:0 auto;padding:0 16px 80px}
+
+    /* ── Hero ───────────────────────────────────────────────────────────── */
+    .hero{padding:28px 0 20px;text-align:center}
+    .hero-title{font-size:clamp(1.6rem,6vw,2.4rem);font-weight:800;line-height:1.1;letter-spacing:-1px;color:var(--ink);margin-bottom:10px}
+    .hero-title .hl{color:var(--blue)}
+    .hero-sub{font-size:.88rem;color:var(--muted);line-height:1.7;max-width:440px;margin:0 auto 16px}
+    .plats{display:flex;flex-wrap:wrap;justify-content:center;gap:5px}
+    .plat{display:flex;align-items:center;gap:4px;background:var(--card-bg);border:1px solid var(--border);border-radius:100px;padding:3px 9px;font-size:.67rem;color:var(--ink2);font-weight:500}
+    .plat-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+
+    /* ── Tabs ───────────────────────────────────────────────────────────── */
+    .tabs{display:flex;gap:2px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:3px;margin-top:18px}
+    .tab{flex:1;border:none;background:none;font-family:var(--fh);font-size:.78rem;font-weight:600;color:var(--muted);cursor:pointer;padding:9px 6px;border-radius:10px;transition:all .15s;-webkit-tap-highlight-color:transparent}
+    .tab.active{background:var(--card-bg);color:var(--ink);box-shadow:var(--shadow)}
+
+    /* ── Tab panels ─────────────────────────────────────────────────────── */
+    .tab-panel{display:none}.tab-panel.active{display:block}
+
+    /* ── Card ───────────────────────────────────────────────────────────── */
+    .card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--r-lg);overflow:hidden;margin-top:14px;box-shadow:var(--shadow)}
+
+    /* ── Input ──────────────────────────────────────────────────────────── */
+    .input-section{padding:14px;border-bottom:1px solid var(--border)}
+    .url-row{display:flex;gap:8px}
+    .url-input{flex:1;min-width:0;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);color:var(--ink);font-family:var(--fm);font-size:.78rem;padding:12px 14px;outline:none;transition:border-color .2s,box-shadow .2s}
+    .url-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,70,229,.12);background:var(--card-bg)}
+    .url-input::placeholder{color:var(--muted2)}
+    .btn-primary{background:var(--blue);color:#fff;border:none;border-radius:var(--r);padding:12px 18px;font-family:var(--fh);font-weight:700;font-size:.86rem;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s}
+    .btn-primary:hover{background:var(--blue-mid)}
+    .btn-primary:active{transform:scale(.97)}
+    .btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+    /* ── Format toggle bar ──────────────────────────────────────────────── */
+    .fmt-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg2)}
+    .fmt-label{font-family:var(--fm);font-size:.58rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;flex-shrink:0}
+    .fmt-toggle{display:flex;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:3px;gap:2px;flex-shrink:0}
+    .fmt-btn{border:none;background:none;font-family:var(--fh);font-size:.76rem;font-weight:700;color:var(--muted);cursor:pointer;padding:6px 14px;border-radius:8px;transition:all .15s}
+    .fmt-btn.on-mp4{background:var(--blue);color:#fff}
+    .fmt-btn.on-mp3{background:var(--green);color:#fff}
+    .fmt-hint{font-size:.7rem;color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+    /* ── Preview ────────────────────────────────────────────────────────── */
+    .preview{display:none;padding:14px;border-bottom:1px solid var(--border);background:var(--bg2)}
+    .preview.show{display:block}
+    .prev-thumb{width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:var(--bg3);border:1px solid var(--border);margin-bottom:10px}
+    .prev-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .prev-title{font-weight:700;font-size:.92rem;margin-bottom:3px;line-height:1.35;color:var(--ink)}
+    .prev-sub{font-size:.68rem;color:var(--muted);font-family:var(--fm);margin-bottom:8px}
+    .badge-4k{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-family:var(--fm);font-size:.56rem;font-weight:700;padding:3px 8px;border-radius:6px;letter-spacing:.4px;margin-top:4px}
+
+    /* ── Progress ───────────────────────────────────────────────────────── */
+    .prog-wrap{margin-top:10px;display:none}
+    .prog-wrap.show{display:block}
+    .prog-bg{height:6px;background:var(--border);border-radius:6px;overflow:hidden;margin-bottom:5px}
+    .prog-bar{height:100%;background:linear-gradient(90deg,var(--blue),#818cf8);border-radius:6px;width:0%;transition:width .45s ease}
+    .prog-row{display:flex;justify-content:space-between;align-items:center}
+    .prog-lbl{font-size:.66rem;color:var(--muted);font-family:var(--fm)}
+    .prog-pct{font-size:.66rem;font-weight:700;color:var(--blue);font-family:var(--fm)}
+
+    /* ── Format rows ────────────────────────────────────────────────────── */
+    .formats-section{padding:0 0 4px}
+    .formats-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 6px}
+    .formats-title{font-size:.76rem;font-weight:700;color:var(--ink2)}
+    .formats-count{font-family:var(--fm);font-size:.6rem;color:var(--muted);background:var(--bg2);padding:2px 8px;border-radius:100px}
+    .fmt-group{padding:0 14px 4px}
+    .fmt-group-label{font-family:var(--fm);font-size:.56rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;padding:7px 0 5px;display:flex;align-items:center;gap:6px}
+    .fmt-group-label::after{content:'';flex:1;height:1px;background:var(--border)}
+    .fmt-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--card-bg);margin-bottom:5px;transition:border-color .15s,opacity .2s}
+    .fmt-row:hover{border-color:var(--border2)}
+    .fmt-row.is-4k{border-color:rgba(124,58,237,.3);background:linear-gradient(135deg,var(--purple-light) 0%,var(--card-bg) 100%)}
+    .fmt-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.95rem}
+    .fmt-icon.video{background:var(--blue-light)}
+    .fmt-icon.audio{background:var(--green-light)}
+    .fmt-icon.va{background:var(--purple-light)}
+    .fmt-info{flex:1;min-width:0}
+    .fmt-res{font-size:.82rem;font-weight:700;color:var(--ink);line-height:1.2;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+    .res-4k-tag{font-family:var(--fm);font-size:.48rem;font-weight:700;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;padding:2px 5px;border-radius:4px}
+    .fmt-meta{font-family:var(--fm);font-size:.6rem;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+    /* Per-row mini progress */
+    .fmt-row-progress{display:none;flex-direction:column;gap:3px;flex:1;min-width:0}
+    .fmt-row-progress.show{display:flex}
+    .frp-bg{height:4px;background:var(--border);border-radius:4px;overflow:hidden}
+    .frp-bar{height:100%;background:linear-gradient(90deg,var(--blue),#818cf8);border-radius:4px;width:0%;transition:width .35s ease}
+    .frp-lbl{font-family:var(--fm);font-size:.57rem;color:var(--muted)}
+
+    .fmt-badge{font-family:var(--fm);font-size:.52rem;font-weight:700;padding:2px 5px;border-radius:4px;text-transform:uppercase;flex-shrink:0}
+    .fmt-badge.mp4{background:var(--blue-light);color:var(--blue)}
+    .fmt-badge.mp3{background:var(--green-light);color:var(--green)}
+    .fmt-badge.webm{background:var(--purple-light);color:var(--purple)}
+    .fmt-badge.m4a{background:var(--amber-light);color:var(--amber)}
+    .fmt-badge.other{background:var(--bg2);color:var(--muted)}
+
+    .fmt-row-toggle{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:2px;gap:1px;flex-shrink:0}
+    .frt-btn{border:none;background:none;font-family:var(--fm);font-size:.58rem;font-weight:700;color:var(--muted);cursor:pointer;padding:4px 7px;border-radius:5px;transition:all .12s;text-transform:uppercase}
+    .frt-btn.on-mp4{background:var(--blue);color:#fff}
+    .frt-btn.on-mp3{background:var(--green);color:#fff}
+
+    .fmt-dl-btn{display:flex;align-items:center;justify-content:center;gap:4px;border:none;border-radius:8px;padding:7px 10px;font-family:var(--fh);font-weight:700;font-size:.72rem;cursor:pointer;flex-shrink:0;transition:all .15s;white-space:nowrap}
+    .fmt-dl-btn.mp4{background:var(--blue);color:#fff}
+    .fmt-dl-btn.mp3{background:var(--green);color:#fff}
+    .fmt-dl-btn.retry{background:var(--red);color:#fff}
+    .fmt-dl-btn:active{transform:scale(.95)}
+    .fmt-dl-btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+    .fmt-dl-spin{width:11px;height:11px;border:1.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
+
+    /* ── Queue badge ────────────────────────────────────────────────────── */
+    .queue-badge{font-family:var(--fm);font-size:.6rem;background:var(--amber-light);color:var(--amber);padding:2px 7px;border-radius:6px;flex-shrink:0}
+
+    /* ── Status bar ─────────────────────────────────────────────────────── */
+    .statusbar{display:none;align-items:center;gap:8px;padding:9px 14px;font-size:.74rem;font-family:var(--fm)}
+    .statusbar.show{display:flex}
+    .statusbar.err{color:var(--red);background:var(--red-light);border-top:1px solid var(--red)}
+    .statusbar.ok{color:var(--green);background:var(--green-light);border-top:1px solid var(--green)}
+    .statusbar.loading{color:var(--muted);border-top:1px solid var(--border)}
+    .spin{width:11px;height:11px;border:1.5px solid var(--muted2);border-top-color:var(--blue);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ── Empty ──────────────────────────────────────────────────────────── */
+    .fmt-empty{padding:28px 14px;text-align:center;color:var(--muted);font-size:.8rem}
+    .fmt-empty-icon{font-size:2rem;margin-bottom:6px}
+
+    /* ── Playlist panel ─────────────────────────────────────────────────── */
+    .playlist-entry{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;border:1px solid var(--border);background:var(--card-bg);margin-bottom:5px}
+    .pe-thumb{width:60px;height:34px;border-radius:6px;object-fit:cover;background:var(--bg3);flex-shrink:0}
+    .pe-info{flex:1;min-width:0}
+    .pe-title{font-size:.78rem;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .pe-meta{font-family:var(--fm);font-size:.58rem;color:var(--muted);margin-top:2px}
+    .pe-check{width:18px;height:18px;flex-shrink:0;accent-color:var(--blue)}
+    .playlist-actions{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--border);background:var(--bg2)}
+
+    /* ── History panel ──────────────────────────────────────────────────── */
+    .history-entry{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;border:1px solid var(--border);background:var(--card-bg);margin-bottom:5px}
+    .he-icon{font-size:1.2rem;flex-shrink:0}
+    .he-info{flex:1;min-width:0}
+    .he-title{font-size:.78rem;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .he-meta{font-family:var(--fm);font-size:.58rem;color:var(--muted);margin-top:2px}
+    .he-clear{background:var(--red-light);color:var(--red);border:none;border-radius:7px;padding:5px 10px;font-size:.68rem;font-weight:700;cursor:pointer;font-family:var(--fh)}
+
+    /* ── Settings panel ─────────────────────────────────────────────────── */
+    .settings-section{padding:14px;border-bottom:1px solid var(--border)}
+    .settings-section:last-child{border-bottom:none}
+    .settings-label{font-size:.7rem;font-weight:700;color:var(--ink2);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+    .settings-label .pill{font-family:var(--fm);font-size:.54rem;background:var(--blue-light);color:var(--blue);padding:1px 6px;border-radius:4px}
+    .settings-sub{font-size:.68rem;color:var(--muted);margin-bottom:10px;line-height:1.55}
+    textarea.cookie-box{width:100%;min-height:100px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);color:var(--ink);font-family:var(--fm);font-size:.68rem;padding:10px;resize:vertical;outline:none;transition:border-color .2s}
+    textarea.cookie-box:focus{border-color:var(--blue)}
+    .settings-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+    .btn-sm{border:none;border-radius:8px;padding:7px 14px;font-family:var(--fh);font-weight:700;font-size:.74rem;cursor:pointer;transition:all .15s}
+    .btn-sm.primary{background:var(--blue);color:#fff}
+    .btn-sm.danger{background:var(--red-light);color:var(--red)}
+    .btn-sm.secondary{background:var(--bg2);border:1px solid var(--border);color:var(--ink2)}
+    .cookie-status{display:flex;align-items:center;gap:6px;font-size:.68rem;font-family:var(--fm);color:var(--muted);margin-top:8px}
+    .cookie-dot{width:7px;height:7px;border-radius:50%;background:var(--muted2)}
+    .cookie-dot.on{background:var(--green)}
+
+    /* ── Status dashboard ───────────────────────────────────────────────── */
+    .stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;padding:14px}
+    .stat-tile{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px}
+    .stat-tile-val{font-size:1.3rem;font-weight:800;color:var(--blue);letter-spacing:-.5px;line-height:1}
+    .stat-tile-lbl{font-size:.62rem;color:var(--muted);font-family:var(--fm);margin-top:3px}
+    .stat-tile.green .stat-tile-val{color:var(--green)}
+    .stat-tile.amber .stat-tile-val{color:var(--amber)}
+    .stat-tile.red   .stat-tile-val{color:var(--red)}
+
+    /* ── Stats row (homepage) ───────────────────────────────────────────── */
+    .stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:14px}
+    .stat-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+    .stat-val{font-size:1.4rem;font-weight:800;color:var(--blue);letter-spacing:-.6px;line-height:1}
+    .stat-lbl{font-size:.65rem;color:var(--muted);font-family:var(--fm);margin-top:3px}
+
+    /* ── FAQ ────────────────────────────────────────────────────────────── */
+    .section{margin-top:30px}
+    .sec-label{display:block;font-family:var(--fm);font-size:.58rem;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px}
+    .sec-title{font-size:1.2rem;font-weight:800;letter-spacing:-.4px;color:var(--ink);margin-bottom:3px}
+    .sec-sub{font-size:.8rem;color:var(--muted);line-height:1.6}
+    .faqs{display:flex;flex-direction:column;margin-top:12px}
+    .faq-item{border-bottom:1px solid var(--border)}
+    .faq-q{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:13px 0;font-size:.84rem;font-weight:600;color:var(--ink);cursor:pointer;user-select:none}
+    .faq-arr{width:20px;height:20px;background:var(--bg2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;color:var(--muted);transition:transform .2s,background .2s}
+    .faq-item.open .faq-arr{transform:rotate(45deg);background:var(--blue-light);color:var(--blue)}
+    .faq-a{display:none;font-size:.78rem;color:var(--muted);line-height:1.7;padding-bottom:12px}
+    .faq-item.open .faq-a{display:block}
+
+    footer{margin-top:40px;padding:20px 0;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:5px;align-items:center;font-size:.68rem;color:var(--muted);font-family:var(--fm)}
+    footer a{color:var(--blue);text-decoration:none}
+
+    .fmt-dl-btn.cancel{background:var(--red);color:#fff}
+    .fmt-dl-btn.cancel:hover{background:#b91c1c}
+
+    /* ── Active downloads settings panel ────────────────────────────────── */
+    .active-job-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;border:1px solid var(--border);background:var(--card-bg);margin-bottom:6px}
+    .ajr-info{flex:1;min-width:0}
+    .ajr-title{font-size:.78rem;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .ajr-bar-wrap{height:4px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:4px}
+    .ajr-bar{height:100%;background:linear-gradient(90deg,var(--blue),#818cf8);border-radius:4px;width:0%;transition:width .4s ease}
+    .ajr-meta{font-family:var(--fm);font-size:.58rem;color:var(--muted);margin-top:3px}
+    .ajr-cancel{background:var(--red-light);color:var(--red);border:none;border-radius:7px;padding:5px 9px;font-size:.68rem;font-weight:700;cursor:pointer;font-family:var(--fh);flex-shrink:0;white-space:nowrap;transition:all .15s}
+    .ajr-cancel:hover{background:var(--red);color:#fff}
+
+    /* ── Download Console (floating drawer) ─────────────────────────────── */
+    #dlConsole{position:fixed;bottom:0;left:0;right:0;z-index:500;max-width:720px;margin:0 auto;background:var(--card-bg);border:1px solid var(--border);border-bottom:none;border-radius:16px 16px 0 0;box-shadow:0 -4px 32px rgba(0,0,0,.15);transform:translateY(calc(100% - 46px));transition:transform .3s cubic-bezier(.4,0,.2,1);}
+    #dlConsole.open{transform:translateY(0);}
+    #dlConsole.hidden{display:none;}
+    .dlc-handle{display:flex;align-items:center;gap:10px;padding:0 16px;height:46px;cursor:pointer;border-bottom:1px solid var(--border);user-select:none;}
+    .dlc-pip{width:8px;height:8px;border-radius:50%;background:var(--muted2);flex-shrink:0;transition:background .2s;}
+    .dlc-pip.active{background:var(--blue);box-shadow:0 0 0 3px rgba(99,102,241,.25);animation:dlcpulse 1.5s infinite;}
+    @keyframes dlcpulse{0%,100%{box-shadow:0 0 0 3px rgba(99,102,241,.25);}50%{box-shadow:0 0 0 7px rgba(99,102,241,.07);}}
+    .dlc-title{font-size:.78rem;font-weight:700;color:var(--ink);flex:1;}
+    .dlc-badge{background:var(--blue);color:#fff;font-family:var(--fm);font-size:.58rem;font-weight:700;padding:2px 7px;border-radius:100px;min-width:20px;text-align:center;}
+    .dlc-badge.done{background:var(--green);}
+    .dlc-chevron{font-size:.7rem;color:var(--muted);transition:transform .25s;}
+    #dlConsole.open .dlc-chevron{transform:rotate(180deg);}
+    .dlc-body{padding:12px 14px;max-height:340px;overflow-y:auto;}
+    .dlc-empty{text-align:center;padding:20px 0;color:var(--muted);font-size:.78rem;}
+    .dlc-job{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;border:1px solid var(--border);background:var(--bg2);margin-bottom:6px;}
+    .dlc-job:last-child{margin-bottom:0;}
+    .dlc-job-icon{font-size:1.1rem;flex-shrink:0;}
+    .dlc-job-info{flex:1;min-width:0;}
+    .dlc-job-title{font-size:.76rem;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .dlc-job-bar-wrap{height:3px;background:var(--border);border-radius:3px;overflow:hidden;margin:4px 0 3px;}
+    .dlc-job-bar{height:100%;border-radius:3px;width:0%;transition:width .4s ease;background:linear-gradient(90deg,var(--blue),#818cf8);}
+    .dlc-job-bar.done{background:var(--green);}.dlc-job-bar.err{background:var(--red);}.dlc-job-bar.cancelled{background:var(--muted2);}
+    .dlc-job-meta{font-family:var(--fm);font-size:.57rem;color:var(--muted);}
+    .dlc-job-actions{display:flex;gap:5px;flex-shrink:0;}
+    .dlc-save-btn{background:var(--green);color:#fff;border:none;border-radius:7px;padding:5px 10px;font-family:var(--fh);font-size:.68rem;font-weight:700;cursor:pointer;white-space:nowrap;}
+    .dlc-save-btn:hover{background:#047857;}
+    .dlc-xbtn{background:var(--red-light);color:var(--red);border:none;border-radius:7px;padding:5px 8px;font-size:.68rem;font-weight:700;cursor:pointer;font-family:var(--fh);}
+    .dlc-xbtn:hover{background:var(--red);color:#fff;}
+    .dlc-push-banner{display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:8px;background:var(--blue-light);border:1px solid rgba(99,102,241,.3);border-radius:9px;font-size:.72rem;color:var(--blue);}
+    .dlc-push-banner button{margin-left:auto;background:var(--blue);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-family:var(--fh);font-size:.68rem;font-weight:700;cursor:pointer;flex-shrink:0;}
+
+    #installBanner{display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:640px;background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:12px 14px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:300;align-items:center;gap:10px}
+    #installBtn{background:var(--blue);color:#fff;border:none;border-radius:9px;padding:7px 12px;font-family:var(--fh);font-weight:700;font-size:.78rem;cursor:pointer;flex-shrink:0}
+    .ib-close{background:var(--bg2);color:var(--muted);border:none;border-radius:50%;width:26px;height:26px;font-size:.85rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+
+    @media(max-width:480px){
+      .fmt-row-toggle{display:none}
+      .fmt-dl-btn{padding:7px 9px;font-size:.68rem}
+      .top-btn span{display:none}
+    }
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="/">
+      <div class="logo-mark">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="7" r="5" stroke="white" stroke-width="1.5"/><path d="M6 5.5v3l3-1.5z" fill="white"/><path d="M4 12h8" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      NexLoad
+    </a>
+    <div class="topbar-spacer"></div>
+    <button class="top-btn" id="notifBtn" onclick="toggleNotifications()">🔔 <span>Notify</span></button>
+    <button class="top-btn" id="darkBtn" onclick="toggleDark()">🌙 <span>Dark</span></button>
+    <span class="topbar-badge">v5.0</span>
+  </div>
+</nav>
+
+<div class="page">
+  <header class="hero">
+    <h1 class="hero-title">Download <span class="hl">any video</span><br/>in every format</h1>
+    <p class="hero-sub">Paste any link — get every quality. 4K preserved. Batch playlists. No signup.</p>
+    <div class="plats">
+      <div class="plat"><span class="plat-dot" style="background:#ff0000"></span>YouTube</div>
+      <div class="plat"><span class="plat-dot" style="background:#000"></span>TikTok</div>
+      <div class="plat"><span class="plat-dot" style="background:#e1306c"></span>Instagram</div>
+      <div class="plat"><span class="plat-dot" style="background:#1da1f2"></span>Twitter/X</div>
+      <div class="plat"><span class="plat-dot" style="background:#1877f2"></span>Facebook</div>
+      <div class="plat"><span class="plat-dot" style="background:#1ab7ea"></span>Vimeo</div>
+      <div class="plat"><span class="plat-dot" style="background:#ff4500"></span>Reddit</div>
+      <div class="plat"><span class="plat-dot" style="background:#6441a5"></span>Twitch</div>
+    </div>
+  </header>
+
+  <!-- ── Tabs ── -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('download')">⬇️ Download</button>
+    <button class="tab" onclick="switchTab('playlist')">📋 Playlist</button>
+    <button class="tab" onclick="switchTab('history')">🕓 History</button>
+    <button class="tab" onclick="switchTab('settings')">⚙️ Settings</button>
+    <button class="tab" onclick="switchTab('status')">📊 Status</button>
+  </div>
+
+  <!-- ═══════════════════════ DOWNLOAD TAB ════════════════════════════════ -->
+  <div class="tab-panel active" id="tab-download">
+    <div class="card">
+      <div class="fmt-bar">
+        <span class="fmt-label">Default</span>
+        <div class="fmt-toggle">
+          <button class="fmt-btn on-mp4" id="gFmtMp4" onclick="setGlobalFmt('mp4')">🎬 MP4</button>
+          <button class="fmt-btn" id="gFmtMp3" onclick="setGlobalFmt('mp3')">🎵 MP3</button>
+        </div>
+        <span class="fmt-hint" id="gFmtHint">Toggle per-row too</span>
+      </div>
+      <div class="input-section">
+        <div class="url-row">
+          <input class="url-input" id="urlInput" type="url" placeholder="Paste YouTube, TikTok, Instagram… URL" autocomplete="off" spellcheck="false"/>
+          <button class="btn-primary" id="fetchBtn" onclick="handleFetch()">Fetch</button>
+        </div>
+      </div>
+      <div class="preview" id="preview">
+        <div id="thumbWrap" class="prev-thumb" style="display:none">
+          <img id="thumb" src="" alt="thumbnail" loading="lazy"/>
+        </div>
+        <div class="prev-title" id="metaTitle"></div>
+        <div class="prev-sub" id="metaSub"></div>
+        <div id="badge4k" class="badge-4k" style="display:none">✦ 4K available — zero re-encoding, full quality preserved</div>
+        <div id="progWrap" class="prog-wrap">
+          <div class="prog-bg"><div class="prog-bar" id="progBar"></div></div>
+          <div class="prog-row">
+            <span class="prog-lbl" id="progLbl">Processing…</span>
+            <span class="prog-pct" id="progPct"></span>
+          </div>
+        </div>
+      </div>
+      <div class="formats-section" id="formatsSection" style="display:none">
+        <div class="formats-header">
+          <span class="formats-title">Available formats</span>
+          <span class="formats-count" id="fmtCount">0 formats</span>
+        </div>
+        <div id="formatsList"></div>
+      </div>
+      <div class="statusbar" id="statusbar">
+        <span class="spin" id="spin" style="display:none"></span>
+        <span id="statusMsg"></span>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val">1K+</div><div class="stat-lbl">sites supported</div></div>
+      <div class="stat-card"><div class="stat-val">4K</div><div class="stat-lbl">zero quality loss</div></div>
+      <div class="stat-card"><div class="stat-val">320k</div><div class="stat-lbl">mp3 bitrate</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--green)">Free</div><div class="stat-lbl">always &amp; forever</div></div>
+    </div>
+    <section class="section">
+      <span class="sec-label">FAQ</span>
+      <div class="sec-title">Common questions</div>
+      <div class="faqs">
+        <div class="faq-item"><div class="faq-q" onclick="faq(this)">Is 4K quality really preserved?<div class="faq-arr">+</div></div><div class="faq-a">Yes — the server uses container remuxing only, zero re-encoding. Your 4K HDR file is delivered byte-for-byte at original bitrate.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="faq(this)">Why use cookies?<div class="faq-arr">+</div></div><div class="faq-a">Some content (age-restricted, private, or your own uploads) needs your browser session. Add your own cookies.txt in Settings — they're only used for your downloads.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="faq(this)">What's the queue for?<div class="faq-arr">+</div></div><div class="faq-a">Multiple downloads run up to 2 at a time. Others queue automatically so the server never chokes on simultaneous large files.</div></div>
+        <div class="faq-item"><div class="faq-q" onclick="faq(this)">Can I download a whole playlist?<div class="faq-arr">+</div></div><div class="faq-a">Yes! Switch to the Playlist tab, paste the playlist URL, select which videos you want, and queue them all at once.</div></div>
+      </div>
+    </section>
+    <footer>
+      <span>© 2025 <a href="/">NexLoad v5.0</a> — Free Video &amp; Audio Downloader</span>
+      <span>yt-dlp · ffmpeg · Python · Node.js</span>
+    </footer>
+  </div>
+
+  <!-- ═══════════════════════ PLAYLIST TAB ════════════════════════════════ -->
+  <div class="tab-panel" id="tab-playlist">
+    <div class="card">
+      <div class="input-section">
+        <div class="url-row">
+          <input class="url-input" id="plInput" type="url" placeholder="Paste YouTube playlist, channel… URL" autocomplete="off" spellcheck="false"/>
+          <button class="btn-primary" id="plFetchBtn" onclick="handlePlaylistFetch()">Fetch</button>
+        </div>
+      </div>
+      <div class="statusbar" id="plStatusbar">
+        <span class="spin" id="plSpin" style="display:none"></span>
+        <span id="plStatusMsg"></span>
+      </div>
+      <div id="plList" style="padding:0 14px 4px"></div>
+      <div class="playlist-actions" id="plActions" style="display:none">
+        <button class="btn-sm secondary" onclick="plSelectAll()">Select All</button>
+        <button class="btn-sm secondary" onclick="plSelectNone()">Clear</button>
+        <div style="flex:1"></div>
+        <div class="fmt-toggle" style="margin-right:4px">
+          <button class="fmt-btn on-mp4" id="plFmtMp4" onclick="setPlFmt('mp4')">🎬 MP4</button>
+          <button class="fmt-btn" id="plFmtMp3" onclick="setPlFmt('mp3')">🎵 MP3</button>
+        </div>
+        <button class="btn-sm primary" id="plDownloadBtn" onclick="downloadSelected()">⬇️ Download Selected</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════ HISTORY TAB ═════════════════════════════════ -->
+  <div class="tab-panel" id="tab-history">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border)">
+        <span style="font-size:.78rem;font-weight:700;color:var(--ink2)">Download history</span>
+        <button class="he-clear" onclick="clearHistory()">🗑 Clear</button>
+      </div>
+      <div id="historyList" style="padding:10px 14px"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════ SETTINGS TAB ════════════════════════════════ -->
+  <div class="tab-panel" id="tab-settings">
+    <div class="card">
+
+      <!-- Active Downloads / Cancel -->
+      <div class="settings-section">
+        <div class="settings-label">⬇️ Active Downloads
+          <span id="activeJobCount" style="font-family:var(--fm);font-size:.54rem;background:var(--amber-light);color:var(--amber);padding:1px 7px;border-radius:4px;margin-left:4px;display:none">0</span>
+        </div>
+        <div class="settings-sub">Cancel any running or queued download. Partial files are deleted immediately.</div>
+        <div id="activeJobsList">
+          <div style="font-size:.76rem;color:var(--muted);padding:6px 0">No active downloads.</div>
+        </div>
+        <div class="settings-actions" style="margin-top:10px">
+          <button class="btn-sm danger" onclick="cancelAllJobs()" id="cancelAllBtn" style="display:none">✕ Cancel All</button>
+        </div>
+      </div>
+
+      <!-- Cookies -->
+      <div class="settings-section">
+        <div class="settings-label">🍪 Your Cookies <span class="pill">Optional</span></div>
+        <div class="settings-sub">
+          Add your own <code>cookies.txt</code> to access content your account can see
+          (age-restricted videos, your own private uploads, etc.).<br/>
+          Cookies are saved <strong>only for your browser session</strong> and used only for your downloads.
+          <br/><br/>
+          <strong>How to export:</strong> Install the browser extension
+          <em>"Get cookies.txt LOCALLY"</em> → open the site → click Export.
+        </div>
+        <div class="cookie-status" id="cookieStatus">
+          <div class="cookie-dot" id="cookieDot"></div>
+          <span id="cookieStatusText">No cookies saved</span>
+        </div>
+        <textarea class="cookie-box" id="cookieBox" placeholder="Paste your cookies.txt content here…&#10;&#10;# Netscape HTTP Cookie File&#10;.youtube.com TRUE / FALSE …"></textarea>
+        <div class="settings-actions">
+          <button class="btn-sm primary" onclick="saveCookies()">💾 Save Cookies</button>
+          <button class="btn-sm secondary" onclick="uploadCookieFile()">📁 Upload File</button>
+          <button class="btn-sm danger" onclick="deleteCookies()">🗑 Remove</button>
+        </div>
+        <input type="file" id="cookieFileInput" accept=".txt" style="display:none" onchange="loadCookieFile(event)"/>
+      </div>
+
+      <!-- Preferences -->
+      <div class="settings-section">
+        <div class="settings-label">🎛 Preferences</div>
+        <div class="settings-sub">These are saved in your browser.</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.8rem;color:var(--ink2)">
+            <input type="checkbox" id="prefDark" onchange="applyPrefDark()" style="accent-color:var(--blue)"/>
+            Dark mode
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.8rem;color:var(--ink2)">
+            <input type="checkbox" id="prefNotif" onchange="applyPrefNotif()" style="accent-color:var(--blue)"/>
+            Browser notifications when download ready
+            <button onclick="subscribePush()" id="pushEnableBtn" style="margin-left:auto;background:var(--blue-light);color:var(--blue);border:1px solid var(--blue);border-radius:7px;padding:3px 9px;font-size:.64rem;font-weight:700;cursor:pointer;font-family:var(--fh);white-space:nowrap">🔔 Enable Push</button>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.8rem;color:var(--ink2)">
+            <input type="checkbox" id="prefAutoPaste" checked onchange="savePref()" style="accent-color:var(--blue)"/>
+            Auto-paste URL from clipboard on focus
+          </label>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════ STATUS TAB ══════════════════════════════════ -->
+  <div class="tab-panel" id="tab-status">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border)">
+        <span style="font-size:.78rem;font-weight:700;color:var(--ink2)">📊 Server Status</span>
+        <button class="btn-sm secondary" onclick="loadStatus()">↻ Refresh</button>
+      </div>
+      <div class="stat-grid" id="statusGrid">
+        <div class="fmt-empty"><div class="fmt-empty-icon">📊</div>Switch to this tab to load status</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<!-- ═══════════════════ DOWNLOAD CONSOLE ══════════════════════════════════ -->
+<div id="dlConsole" class="hidden">
+  <div class="dlc-handle" onclick="toggleConsole()">
+    <div class="dlc-pip" id="dlcPip"></div>
+    <span class="dlc-title" id="dlcTitle">Downloads</span>
+    <span class="dlc-badge" id="dlcBadge" style="display:none">0</span>
+    <span class="dlc-chevron">▲</span>
+  </div>
+  <div class="dlc-body" id="dlcBody">
+    <div class="dlc-empty">No active downloads</div>
+  </div>
+</div>
+
+<div id="installBanner">
+  <div style="font-size:1.4rem">📲</div>
+  <div style="flex:1"><div style="font-weight:700;font-size:.86rem;color:var(--ink)">Add to Home Screen</div><div style="font-size:.7rem;color:var(--muted)">Use like a native app</div></div>
+  <button id="installBtn">Install</button>
+  <button class="ib-close" onclick="document.getElementById('installBanner').style.display='none'">✕</button>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════════════
+//  Config & State
+// ══════════════════════════════════════════════════════════════════════════════
+const SERVER = '';   // change if remote e.g. 'http://192.168.1.5:3000'
+
+// Stable session ID stored in localStorage
+let SESSION_ID = localStorage.getItem('nxl_session');
+if (!SESSION_ID) {
+  SESSION_ID = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)+Date.now();
+  localStorage.setItem('nxl_session', SESSION_ID);
+}
+
+let globalFmt    = 'mp4';
+let videoInfo    = null;
+let rowFmts      = {};
+let activeJobs   = {};       // format_id → { sse, jobId }
+let notifEnabled = false;
+let plFmt        = 'mp4';
+let plEntries    = [];
+
+// Pending jobs survived across page refresh — keyed by jobId
+// Format: { jobId, title, type, format_id, url, context }
+// context: 'single' | 'playlist'
+let pendingJobs  = JSON.parse(localStorage.getItem('nxl_pending')||'{}');
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Helpers
+// ══════════════════════════════════════════════════════════════════════════════
+function apiHeaders() {
+  return { 'Content-Type':'application/json', 'X-Session-Id': SESSION_ID };
+}
+
+function fmtDur(s) {
+  if (!s) return '';
+  const m = Math.floor(s/60), h = Math.floor(m/60);
+  if (h) return `${h}:${String(m%60).padStart(2,'0')}:${String(s%60|0).padStart(2,'0')}`;
+  return `${m}:${String(s%60|0).padStart(2,'0')}`;
+}
+
+function timeAgo(ts) {
+  const d = Date.now()-ts, m=Math.floor(d/60000), h=Math.floor(m/60);
+  if (h>23) return `${Math.floor(h/24)}d ago`;
+  if (h>0)  return `${h}h ago`;
+  if (m>0)  return `${m}m ago`;
+  return 'just now';
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Tabs
+// ══════════════════════════════════════════════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((b,i)=>{
+    const names=['download','playlist','history','settings','status'];
+    b.classList.toggle('active', names[i]===name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id===`tab-${name}`);
+  });
+  if (name==='history') loadHistory();
+  if (name==='status')  loadStatus();
+  if (name==='settings') { loadCookieStatus(); loadActiveJobs(); }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Dark mode
+// ══════════════════════════════════════════════════════════════════════════════
+function toggleDark() {
+  const dark = document.documentElement.dataset.theme !== 'dark';
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  document.getElementById('darkBtn').textContent = dark ? '☀️ Light' : '🌙 Dark';
+  document.getElementById('prefDark').checked = dark;
+  savePref();
+}
+function applyPrefDark() {
+  const dark = document.getElementById('prefDark').checked;
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  document.getElementById('darkBtn').textContent = dark ? '☀️ Light' : '🌙 Dark';
+  savePref();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Notifications
+// ══════════════════════════════════════════════════════════════════════════════
+async function toggleNotifications() {
+  if (notifEnabled) { notifEnabled=false; updateNotifBtn(); return; }
+  if (!('Notification' in window)) return alert('Notifications not supported.');
+  if (Notification.permission==='granted') { notifEnabled=true; }
+  else if (Notification.permission!=='denied') {
+    const p = await Notification.requestPermission();
+    notifEnabled = p==='granted';
+  } else { alert('Notifications blocked — allow them in browser settings.'); }
+  document.getElementById('prefNotif').checked = notifEnabled;
+  savePref();
+  updateNotifBtn();
+}
+function updateNotifBtn() {
+  const btn = document.getElementById('notifBtn');
+  btn.textContent = notifEnabled ? '🔔 ON' : '🔔 Notify';
+  btn.classList.toggle('active', notifEnabled);
+}
+function applyPrefNotif() {
+  notifEnabled = document.getElementById('prefNotif').checked;
+  updateNotifBtn(); savePref();
+}
+function notify(title, body, tag) {
+  // Fire local notification: when page is hidden use Notification API,
+  // when page is visible show a brief toast via the status bar.
+  // Push (server-side) handles the case when the page is fully closed.
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') {
+    try { new Notification(title, { body, tag, icon: '/favicon.ico', silent: false }); } catch {}
+  } else if (Notification.permission === 'default' && notifEnabled) {
+    // Permission not yet asked — request it now (we're in a user-initiated flow)
+    Notification.requestPermission().then(p => {
+      if (p === 'granted') {
+        try { new Notification(title, { body, tag, icon: '/favicon.ico', silent: false }); } catch {}
+        notifEnabled = true;
+        document.getElementById('prefNotif').checked = true;
+        updateNotifBtn(); savePref();
+      }
+    });
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Download Console
+// ══════════════════════════════════════════════════════════════════════════════
+const consoleJobs = {};   // jobId → { title, type, token, filename, status, progress, message, sseObj }
+
+function showConsole() {
+  const el = document.getElementById('dlConsole');
+  if (el) el.classList.remove('hidden');
+}
+function hideConsole() {
+  const el = document.getElementById('dlConsole');
+  if (el) el.classList.add('hidden');
+}
+function toggleConsole() {
+  const el = document.getElementById('dlConsole');
+  if (el) el.classList.toggle('open');
+}
+function openConsole() {
+  const el = document.getElementById('dlConsole');
+  if (el) { el.classList.remove('hidden'); el.classList.add('open'); }
+}
+
+function updateConsoleHeader() {
+  const jobs  = Object.values(consoleJobs);
+  const active = jobs.filter(j => j.status === 'running' || j.status === 'pending');
+  const done   = jobs.filter(j => j.status === 'done');
+  const pip    = document.getElementById('dlcPip');
+  const badge  = document.getElementById('dlcBadge');
+  const title  = document.getElementById('dlcTitle');
+
+  if (!jobs.length) { hideConsole(); return; }
+  showConsole();
+
+  if (active.length) {
+    if (pip)   { pip.className = 'dlc-pip active'; }
+    if (badge) { badge.textContent = active.length; badge.className = 'dlc-badge'; badge.style.display = 'inline'; }
+    if (title) title.textContent = `Downloading ${active.length} file${active.length>1?'s':''}…`;
+  } else if (done.length) {
+    if (pip)   { pip.className = 'dlc-pip'; pip.style.background = 'var(--green)'; }
+    if (badge) { badge.textContent = done.length; badge.className = 'dlc-badge done'; badge.style.display = 'inline'; }
+    if (title) title.textContent = `${done.length} download${done.length>1?'s':''} ready`;
+  } else {
+    // only errors/cancelled
+    if (pip)   pip.className = 'dlc-pip';
+    if (badge) badge.style.display = 'none';
+    if (title) title.textContent = 'Downloads';
+  }
+}
+
+function renderConsoleJob(jobId) {
+  const j = consoleJobs[jobId];
+  if (!j) return;
+  const body = document.getElementById('dlcBody');
+  if (!body) return;
+
+  // Remove the empty placeholder
+  const empty = body.querySelector('.dlc-empty');
+  if (empty) empty.remove();
+
+  let el = document.getElementById('dlcj-' + jobId);
+  if (!el) {
+    el = document.createElement('div');
+    el.className = 'dlc-job';
+    el.id = 'dlcj-' + jobId;
+    body.insertBefore(el, body.firstChild);  // newest on top
+  }
+
+  const icon = j.type === 'mp3' ? '🎵' : '🎬';
+  const barClass = j.status === 'done' ? 'done' : j.status === 'error' ? 'err' : j.status === 'cancelled' ? 'cancelled' : '';
+  const pct = j.progress || 0;
+
+  let actionsHtml = '';
+  if (j.status === 'done' && j.token) {
+    actionsHtml = `<button class="dlc-save-btn" onclick="safeDownload('${SERVER}/api/dl/${j.token}','${(j.filename||'download').replace(/'/g,"\\'")}');this.textContent='↓ Again';" title="File auto-saved. Click to download again.">↓ Again</button>`;
+  } else if (j.status === 'running' || j.status === 'pending') {
+    actionsHtml = `<button class="dlc-xbtn" onclick="cancelJobFromConsole('${jobId}')">✕</button>`;
+  }
+
+  el.innerHTML =
+    `<div class="dlc-job-icon">${icon}</div>` +
+    `<div class="dlc-job-info">` +
+      `<div class="dlc-job-title">${j.title || 'Download'}</div>` +
+      `<div class="dlc-job-bar-wrap"><div class="dlc-job-bar ${barClass}" id="dlcbar-${jobId}" style="width:${pct}%"></div></div>` +
+      `<div class="dlc-job-meta" id="dlcmeta-${jobId}">${getConsoleMeta(j)}</div>` +
+    `</div>` +
+    `<div class="dlc-job-actions">${actionsHtml}</div>`;
+}
+
+function getConsoleMeta(j) {
+  if (j.status === 'done')      return `✓ ${j.size_h || ''} · Auto-saved`;
+  if (j.status === 'error')     return `✗ Failed`;
+  if (j.status === 'cancelled') return `✕ Cancelled`;
+  if (j.status === 'pending')   return `⏳ Queued`;
+  return j.message || 'Downloading…';
+}
+
+function updateConsoleJobLive(jobId, patch) {
+  if (!consoleJobs[jobId]) return;
+  Object.assign(consoleJobs[jobId], patch);
+  const bar  = document.getElementById('dlcbar-' + jobId);
+  const meta = document.getElementById('dlcmeta-' + jobId);
+  const pct  = patch.progress || consoleJobs[jobId].progress || 0;
+  if (bar)  { bar.style.width = pct + '%'; }
+  if (meta) meta.textContent = getConsoleMeta(consoleJobs[jobId]);
+  // Re-render full row when status changes (buttons change)
+  if (patch.status) { renderConsoleJob(jobId); updateConsoleHeader(); }
+}
+
+function addConsoleJob(jobId, meta) {
+  consoleJobs[jobId] = { jobId, status: 'pending', progress: 0, message: 'Queued…', ...meta };
+  renderConsoleJob(jobId);
+  updateConsoleHeader();
+  openConsole();
+  showPushBannerIfNeeded();
+}
+
+function consoleJobDone(jobId, job) {
+  updateConsoleJobLive(jobId, { status: 'done', progress: 100, token: job.token, filename: job.filename, size_h: job.size_h });
+  // Auto-open console so user sees the Save button
+  openConsole();
+}
+
+async function cancelJobFromConsole(jobId) {
+  const el = document.getElementById('dlcj-' + jobId);
+  const xbtn = el ? el.querySelector('.dlc-xbtn') : null;
+  if (xbtn) { xbtn.disabled = true; xbtn.textContent = '…'; }
+  await cancelJob(jobId);
+  // SSE will deliver the cancelled status which updates the row
+}
+
+// Remove a finished/cancelled job from console after a delay
+function scheduleConsoleRemove(jobId, delayMs) {
+  setTimeout(() => {
+    delete consoleJobs[jobId];
+    const el = document.getElementById('dlcj-' + jobId);
+    if (el) el.remove();
+    const body = document.getElementById('dlcBody');
+    if (body && !body.querySelector('.dlc-job')) {
+      body.innerHTML = '<div class="dlc-empty">No active downloads</div>';
+      hideConsole();
+    }
+    updateConsoleHeader();
+  }, delayMs);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Web Push
+// ══════════════════════════════════════════════════════════════════════════════
+let pushSubscription = null;
+let pushSupported = false;
+let vapidPublicKey = null;
+
+async function initPush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  pushSupported = true;
+
+  try {
+    const r = await fetch(`${SERVER}/api/push/vapid-public-key`);
+    if (!r.ok) return;
+    const d = await r.json();
+    vapidPublicKey = d.publicKey;
+  } catch { return; }
+
+  // Check if already subscribed
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    pushSubscription = await reg.pushManager.getSubscription();
+    if (pushSubscription) {
+      // Re-send to server in case it was lost
+      await sendSubscriptionToServer(pushSubscription);
+    }
+  } catch {}
+}
+
+async function subscribePush() {
+  if (!pushSupported || !vapidPublicKey) {
+    alert('Push notifications are not available. Make sure the server has web-push installed (npm install web-push).');
+    return;
+  }
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+    });
+    pushSubscription = sub;
+    await sendSubscriptionToServer(sub);
+    hidePushBanner();
+    setStatus('🔔 Push notifications enabled — you can now leave the page!', 'ok');
+  } catch(e) {
+    console.error('Push subscribe failed:', e);
+    alert('Could not enable push: ' + e.message);
+  }
+}
+
+async function sendSubscriptionToServer(sub) {
+  try {
+    await fetch(`${SERVER}/api/push/subscribe`, {
+      method: 'POST', headers: apiHeaders(),
+      body: JSON.stringify({ subscription: sub.toJSON() }),
+    });
+  } catch {}
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  return new Uint8Array([...raw].map(c => c.charCodeAt(0)));
+}
+
+function showPushBannerIfNeeded() {
+  if (pushSubscription || !pushSupported || !vapidPublicKey) return;
+  if (Notification.permission === 'denied') return;
+  const body = document.getElementById('dlcBody');
+  if (!body || document.getElementById('dlcPushBanner')) return;
+  const banner = document.createElement('div');
+  banner.id = 'dlcPushBanner';
+  banner.className = 'dlc-push-banner';
+  banner.innerHTML =
+    '🔔 <span>Get notified when downloads finish — even if you leave</span>' +
+    '<button onclick="subscribePush()">Enable</button>';
+  body.insertBefore(banner, body.firstChild);
+}
+
+function hidePushBanner() {
+  const b = document.getElementById('dlcPushBanner');
+  if (b) b.remove();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Preferences (localStorage)
+// ══════════════════════════════════════════════════════════════════════════════
+function savePref() {
+  localStorage.setItem('nxl_prefs', JSON.stringify({
+    dark:  document.getElementById('prefDark').checked,
+    notif: document.getElementById('prefNotif').checked,
+    autoPaste: document.getElementById('prefAutoPaste').checked,
+  }));
+}
+function loadPrefs() {
+  try {
+    const p = JSON.parse(localStorage.getItem('nxl_prefs')||'{}');
+    if (p.dark) { document.documentElement.dataset.theme='dark'; document.getElementById('prefDark').checked=true; document.getElementById('darkBtn').textContent='☀️ Light'; }
+    if (p.notif) { notifEnabled=true; document.getElementById('prefNotif').checked=true; updateNotifBtn(); }
+    if (p.autoPaste===false) document.getElementById('prefAutoPaste').checked=false;
+  } catch {}
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Global format toggle
+// ══════════════════════════════════════════════════════════════════════════════
+function setGlobalFmt(f) {
+  globalFmt = f;
+  document.getElementById('gFmtMp4').className = 'fmt-btn'+(f==='mp4'?' on-mp4':'');
+  document.getElementById('gFmtMp3').className = 'fmt-btn'+(f==='mp3'?' on-mp3':'');
+  document.getElementById('gFmtHint').textContent = f==='mp4' ? 'Video download' : 'Audio (MP3) download';
+  if (videoInfo) videoInfo.formats.forEach(fmt => { rowFmts[fmt.format_id]=f; updateRowToggle(fmt.format_id,f); });
+}
+function setRowFmt(fid,f) { rowFmts[fid]=f; updateRowToggle(fid,f); }
+function updateRowToggle(fid,f) {
+  const sid = fid.replace(/[^a-zA-Z0-9_-]/g,'_');
+  const row = document.getElementById(`row-${sid}`); if (!row) return;
+  const mp4 = row.querySelector('.frt-mp4');
+  const mp3 = row.querySelector('.frt-mp3');
+  const btn = document.getElementById(`dlbtn-${sid}`);
+  if (mp4) mp4.className='frt-btn frt-mp4'+(f==='mp4'?' on-mp4':'');
+  if (mp3) mp3.className='frt-btn frt-mp3'+(f==='mp3'?' on-mp3':'');
+  if (btn && !btn.disabled) { btn.className=`fmt-dl-btn ${f}`; btn.querySelector('.dl-label').textContent=f.toUpperCase(); }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Fetch info
+// ══════════════════════════════════════════════════════════════════════════════
+async function handleFetch() {
+  const url = document.getElementById('urlInput').value.trim();
+  if (!url) return setStatus('Please paste a video URL first.','err');
+  setLoading(true,'Fetching video info…'); hideFormats(); hidePreview();
+  try {
+    const r = await fetch(`${SERVER}/api/info`,{method:'POST',headers:apiHeaders(),body:JSON.stringify({url})});
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error||'Failed');
+    videoInfo=data; rowFmts={};
+    (data.formats||[]).forEach(f=>{rowFmts[f.format_id]=globalFmt;});
+    showPreview(data); renderFormats(data.formats||[]); clearStatus();
+  } catch(e) { setStatus('Error: '+e.message,'err'); }
+  finally { setLoading(false); }
+}
+
+function showPreview(d) {
+  document.getElementById('metaTitle').textContent = d.title||'Unknown title';
+  const dur = d.duration ? fmtDur(d.duration) : '';
+  document.getElementById('metaSub').textContent = [d.uploader,dur,d.view_count?Number(d.view_count).toLocaleString()+' views':''].filter(Boolean).join(' · ');
+  const img=document.getElementById('thumb'), wrap=document.getElementById('thumbWrap');
+  if (d.thumbnail){img.src=d.thumbnail;wrap.style.display='block';}else{wrap.style.display='none';}
+  document.getElementById('badge4k').style.display = d.has_4k?'inline-flex':'none';
+  document.getElementById('preview').classList.add('show');
+}
+function hidePreview(){ document.getElementById('preview').classList.remove('show'); hideProgress(); }
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Render formats
+// ══════════════════════════════════════════════════════════════════════════════
+function fmtIcon(f){return f.hasVideo&&f.hasAudio?'🎬':f.hasVideo?'📹':'🎵';}
+function fmtIconClass(f){return f.hasVideo&&f.hasAudio?'va':f.hasVideo?'video':'audio';}
+function badgeClass(ext){return{mp4:'mp4',mp3:'mp3',webm:'webm',m4a:'m4a'}[(ext||'').toLowerCase()]||'other';}
+
+function renderFormats(formats) {
+  const list = document.getElementById('formatsList');
+  list.innerHTML='';
+  if (!formats.length){
+    list.innerHTML='<div class="fmt-empty"><div class="fmt-empty-icon">🔍</div>No downloadable formats found.</div>';
+    document.getElementById('fmtCount').textContent='0 formats';
+    document.getElementById('formatsSection').style.display='block';
+    return;
+  }
+  document.getElementById('fmtCount').textContent=`${formats.length} format${formats.length!==1?'s':''}`;
+  document.getElementById('formatsSection').style.display='block';
+
+  [
+    {key:'va',    label:'Video + Audio', items:formats.filter(f=>f.hasVideo&&f.hasAudio)},
+    {key:'video', label:'Video only',    items:formats.filter(f=>f.hasVideo&&!f.hasAudio)},
+    {key:'audio', label:'Audio only',    items:formats.filter(f=>!f.hasVideo&&f.hasAudio)},
+  ].forEach(g=>{
+    if (!g.items.length) return;
+    const grp=document.createElement('div'); grp.className='fmt-group';
+    grp.innerHTML=`<div class="fmt-group-label">${fmtIcon({hasVideo:g.key!=='audio',hasAudio:g.key!=='video'})} ${g.label}</div>`;
+    g.items.forEach(f=>{
+      const cur=rowFmts[f.format_id]||globalFmt;
+      const sid=f.format_id.replace(/[^a-zA-Z0-9_-]/g,'_');
+      const row=document.createElement('div');
+      row.className=`fmt-row${f.is_4k?' is-4k':''}`;
+      row.id=`row-${sid}`; row.dataset.formatId=f.format_id;
+      const sizeTxt=f.filesize_h?`· ${f.filesize_h}`:'';
+      const fpsTxt=f.fps&&f.fps>=48?` · ${Math.round(f.fps)}fps`:'';
+      const tbrTxt=f.tbr?` · ${Math.round(f.tbr)}kbps`:'';
+      const codec=[f.vcodec,f.acodec].filter(Boolean).join('+');
+      const meta=[f.ext?.toUpperCase(),codec,sizeTxt+fpsTxt+tbrTxt].filter(s=>s&&s.trim());
+      const fid_safe=f.format_id.replace(/'/g,"\\'");
+      row.innerHTML=`
+        <div class="fmt-icon ${fmtIconClass(f)}">${fmtIcon(f)}</div>
+        <div class="fmt-info">
+          <div class="fmt-res">${f.resolution||f.label||'?'}${f.is_4k?'<span class="res-4k-tag">4K</span>':''}</div>
+          <div class="fmt-meta">${meta.join(' · ')}</div>
+        </div>
+        <div class="fmt-row-progress" id="frp-${sid}">
+          <div class="frp-bg"><div class="frp-bar" id="frpbar-${sid}"></div></div>
+          <div class="frp-lbl" id="frplbl-${sid}">Starting…</div>
+        </div>
+        <span class="fmt-badge ${badgeClass(f.ext)}">${(f.ext||'?').toUpperCase()}</span>
+        <div class="fmt-row-toggle">
+          <button class="frt-btn frt-mp4${cur==='mp4'?' on-mp4':''}" onclick="setRowFmt('${fid_safe}','mp4')">MP4</button>
+          <button class="frt-btn frt-mp3${cur==='mp3'?' on-mp3':''}" onclick="setRowFmt('${fid_safe}','mp3')">MP3</button>
+        </div>
+        <button class="fmt-dl-btn ${cur}" id="dlbtn-${sid}" onclick="downloadFormat('${fid_safe}')">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 7l3 3 3-3M2 13h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="dl-label">${cur.toUpperCase()}</span>
+        </button>`;
+      grp.appendChild(row);
+    });
+    list.appendChild(grp);
+  });
+}
+function hideFormats(){ document.getElementById('formatsSection').style.display='none'; document.getElementById('formatsList').innerHTML=''; }
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Download — SSE progress, no blob, no hang
+// ══════════════════════════════════════════════════════════════════════════════
+async function downloadFormat(format_id) {
+  const url=document.getElementById('urlInput').value.trim();
+  if (!url||!videoInfo) return;
+  const fmt=rowFmts[format_id]||globalFmt, title=videoInfo.title||'download';
+  const sid=format_id.replace(/[^a-zA-Z0-9_-]/g,'_');
+  const dlBtn=document.getElementById(`dlbtn-${sid}`);
+  const frp=document.getElementById(`frp-${sid}`);
+  const frpBar=document.getElementById(`frpbar-${sid}`);
+  const frpLbl=document.getElementById(`frplbl-${sid}`);
+  const row=document.getElementById(`row-${sid}`);
+
+  if (activeJobs[format_id]) { try{activeJobs[format_id].sse.close();}catch{} delete activeJobs[format_id]; }
+
+  if (dlBtn) { dlBtn.disabled=true; dlBtn.innerHTML=`<span class="fmt-dl-spin"></span><span class="dl-label">Queued…</span>`; }
+  if (frp)  frp.classList.add('show');
+  if (row)  { row.style.opacity='.7'; row.style.pointerEvents='none'; }
+  setStatus(`⏳ Queued ${fmt.toUpperCase()} — ${title}`,'loading');
+
+  try {
+    const r=await fetch(`${SERVER}/api/download/format`,{method:'POST',headers:apiHeaders(),body:JSON.stringify({url,format_id,type:fmt,title})});
+    if (!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error||`Server ${r.status}`);}
+    const {jobId,position}=await r.json();
+
+    // ── Persist so a page refresh can reconnect ──────────────────────────────
+    savePendingJob(jobId, { title, type:fmt, format_id, url, context:'single' });
+
+    if (position>1) {
+      if (dlBtn) dlBtn.innerHTML=`<span class="queue-badge">#${position}</span><span class="dl-label">Queued</span>`;
+      if (frpLbl) frpLbl.textContent=`Position ${position} in queue…`;
+    }
+
+    const sse=new EventSource(`${SERVER}/api/job/${jobId}`);
+    activeJobs[format_id]={sse,jobId};
+
+    // ── Register in Download Console ─────────────────────────────────────────
+    addConsoleJob(jobId, { title, type: fmt, status:'pending' });
+
+    // Swap download button → cancel button while active
+    if (dlBtn) {
+      dlBtn.disabled = false;
+      dlBtn.className = 'fmt-dl-btn cancel';
+      dlBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span class="dl-label">Cancel</span>';
+      dlBtn.onclick = async () => {
+        dlBtn.disabled = true; dlBtn.innerHTML = '<span class="fmt-dl-spin"></span><span class="dl-label">Cancelling…</span>';
+        await cancelJob(jobId);
+      };
+    }
+
+    sse.onmessage=(e)=>{
+      let job; try{job=JSON.parse(e.data);}catch{return;}
+      const pct=job.progress||0, msg=job.message||'';
+      if (frpBar) frpBar.style.width=pct+'%';
+      if (frpLbl) frpLbl.textContent=msg;
+      showProgress(msg,pct);
+      // Live-update console
+      updateConsoleJobLive(jobId, { status: job.status==='running'||job.status==='pending' ? job.status : job.status, progress: pct, message: msg });
+
+      if (job.status==='done'){
+        sse.close(); delete activeJobs[format_id];
+        removePendingJob(jobId);
+        consoleJobDone(jobId, job);
+        scheduleConsoleRemove(jobId, 60000);
+        notify('✅ Download ready!',`${job.filename} (${job.size_h||''})`,`nxl-${jobId}`);
+        setStatus(`✓ Saving: ${job.filename}…`,'ok');
+        if (job.token) safeDownload(`${SERVER}/api/dl/${job.token}`, job.filename || 'download');
+        restoreRow(format_id,fmt); hideProgress();
+      } else if (job.status==='cancelled'){
+        sse.close(); delete activeJobs[format_id];
+        removePendingJob(jobId);
+        updateConsoleJobLive(jobId, { status:'cancelled', progress:0 });
+        scheduleConsoleRemove(jobId, 4000);
+        setStatus('✕ Download cancelled','err');
+        restoreRow(format_id,fmt); hideProgress();
+      } else if (job.status==='error'){
+        sse.close(); delete activeJobs[format_id];
+        removePendingJob(jobId);
+        updateConsoleJobLive(jobId, { status:'error', progress:0, message: job.error||'Failed' });
+        scheduleConsoleRemove(jobId, 8000);
+        notify('❌ Download failed',job.error||'',`nxl-err-${jobId}`);
+        setStatus(`✗ ${job.error||'Failed'}`,'err');
+        restoreRowError(format_id,fmt); hideProgress();
+      }
+    };
+    sse.onerror=()=>{
+      const aj = activeJobs[format_id];
+      if (!aj) return;
+      sse.close(); delete activeJobs[format_id];
+      updateConsoleJobLive(jobId, { status:'error', message:'Connection lost' });
+      scheduleConsoleRemove(jobId, 8000);
+      setStatus('✗ Lost connection to server.','err');
+      restoreRowError(format_id,fmt); hideProgress();
+    };
+  } catch(e){setStatus(`✗ ${e.message}`,'err');restoreRowError(format_id,fmt);hideProgress();}
+}
+
+// ── Safe cross-browser download ────────────────────────────────────────────────
+// Chrome blocks auto-triggered anchor clicks from async callbacks (SSE, fetch).
+// Solution: use showSaveFilePicker (File System Access API) when available — it
+// asks the user WHERE to save and then streams the file directly. On other
+// browsers (Firefox, Safari) the plain anchor method works fine.
+async function safeDownload(url, filename) {
+  // File System Access API — Chrome 86+, Edge 86+
+  // This is the only method that (a) shows the OS save dialog and (b) works
+  // from non-gesture contexts like SSE callbacks in Chrome.
+  if (window.showSaveFilePicker) {
+    try {
+      const ext = filename.split('.').pop() || 'mp4';
+      const mimeMap = { mp4:'video/mp4', mp3:'audio/mpeg', mkv:'video/x-matroska', webm:'video/webm', m4a:'audio/mp4' };
+      const mime = mimeMap[ext] || 'application/octet-stream';
+
+      const fileHandle = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{ description: 'Media file', accept: { [mime]: ['.'+ext] } }],
+      });
+      const writable = await fileHandle.createWritable();
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Server returned ' + response.status);
+      await response.body.pipeTo(writable);
+      return; // done — file saved where the user chose
+    } catch (err) {
+      // User cancelled the save dialog — don't fall through
+      if (err.name === 'AbortError') return;
+      // Any other FSAPI error — fall through to anchor method
+      console.warn('[safeDownload] FSAPI failed, falling back:', err.message);
+    }
+  }
+
+  // Anchor fallback — works on Firefox, Safari, and old Chromium
+  // Must be called from a click handler or similar user-gesture context.
+  // For SSE-triggered calls on Firefox/Safari this works; Chrome will block
+  // it if no gesture exists, but FSAPI above handles Chrome cases first.
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.rel = 'noopener noreferrer';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => document.body.removeChild(a), 3000);
+}
+
+// Keep old name as alias so existing calls (console "Again" button etc.) still work
+function triggerDirectDownload(url, filename) { safeDownload(url, filename); }
+function restoreRow(fid,fmt){
+  const sid=fid.replace(/[^a-zA-Z0-9_-]/g,'_');
+  const row=document.getElementById(`row-${sid}`);
+  const btn=document.getElementById(`dlbtn-${sid}`);
+  const frp=document.getElementById(`frp-${sid}`);
+  if (row){row.style.opacity='1';row.style.pointerEvents='auto';}
+  if (frp) frp.classList.remove('show');
+  if (btn){btn.disabled=false;btn.className=`fmt-dl-btn ${fmt}`;btn.innerHTML=`<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 7l3 3 3-3M2 13h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="dl-label">${fmt.toUpperCase()}</span>`;}
+}
+function restoreRowError(fid,fmt){
+  const sid=fid.replace(/[^a-zA-Z0-9_-]/g,'_');
+  const row=document.getElementById(`row-${sid}`);
+  const btn=document.getElementById(`dlbtn-${sid}`);
+  const frp=document.getElementById(`frp-${sid}`);
+  if (row){row.style.opacity='1';row.style.pointerEvents='auto';}
+  if (frp) frp.classList.remove('show');
+  if (btn){btn.disabled=false;btn.className='fmt-dl-btn retry';btn.innerHTML=`<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 8a6 6 0 1 1 1.5 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M2 12V8h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="dl-label">Retry</span>`;}
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Progress & Status
+// ══════════════════════════════════════════════════════════════════════════════
+function showProgress(lbl,pct){
+  document.getElementById('progWrap').classList.add('show');
+  document.getElementById('progBar').style.width=pct+'%';
+  document.getElementById('progLbl').textContent=lbl;
+  document.getElementById('progPct').textContent=pct>0?`${Math.round(pct)}%`:'';
+}
+function hideProgress(){ document.getElementById('progWrap').classList.remove('show'); document.getElementById('progBar').style.width='0%'; document.getElementById('progPct').textContent=''; }
+function setStatus(msg,type){ const b=document.getElementById('statusbar'); document.getElementById('statusMsg').textContent=msg; document.getElementById('spin').style.display=type==='loading'?'inline-block':'none'; b.className=`statusbar show ${type}`; }
+function clearStatus(){ document.getElementById('statusbar').classList.remove('show'); }
+function setLoading(on,msg=''){ document.getElementById('fetchBtn').disabled=on; if (on&&msg) setStatus(msg,'loading'); }
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Playlist
+// ══════════════════════════════════════════════════════════════════════════════
+function setPlFmt(f){
+  plFmt=f;
+  document.getElementById('plFmtMp4').className='fmt-btn'+(f==='mp4'?' on-mp4':'');
+  document.getElementById('plFmtMp3').className='fmt-btn'+(f==='mp3'?' on-mp3':'');
+}
+
+async function handlePlaylistFetch(){
+  const url=document.getElementById('plInput').value.trim();
+  if (!url) return;
+  const sb=document.getElementById('plStatusbar'), msg=document.getElementById('plStatusMsg'), spin=document.getElementById('plSpin');
+  sb.classList.add('show'); sb.className='statusbar show loading';
+  if(spin) spin.style.display='inline-block';
+  msg.textContent='Fetching playlist…';
+  document.getElementById('plList').innerHTML='';
+  document.getElementById('plActions').style.display='none';
+  const oldProg=document.getElementById('plProgress'); if(oldProg) oldProg.remove();
+  try {
+    const r=await fetch(`${SERVER}/api/playlist`,{method:'POST',headers:apiHeaders(),body:JSON.stringify({url})});
+    const data=await r.json();
+    if (!r.ok||data.error) throw new Error(data.error||'Failed');
+    plEntries=data.entries||[];
+    if(spin) spin.style.display='none';
+    sb.classList.remove('show');
+    renderPlaylist(plEntries);
+  } catch(e){
+    if(spin) spin.style.display='none';
+    sb.className='statusbar show err'; msg.textContent='✗ '+e.message;
+  }
+}
+
+function renderPlaylist(entries){
+  const list=document.getElementById('plList'); list.innerHTML='';
+  if (!entries.length){ list.innerHTML='<div class="fmt-empty"><div class="fmt-empty-icon">📭</div>No entries found.</div>'; return; }
+  entries.forEach((e,i)=>{
+    const el=document.createElement('div'); el.className='playlist-entry';
+    el.innerHTML=`
+      <input type="checkbox" class="pe-check" id="pe-${i}" checked/>
+      <img class="pe-thumb" src="${e.thumbnail||''}" onerror="this.style.display='none'" loading="lazy"/>
+      <div class="pe-info">
+        <div class="pe-title">${e.title||'Untitled'}</div>
+        <div class="pe-meta">${e.uploader||''}${e.duration?' · '+fmtDur(e.duration):''}</div>
+      </div>`;
+    list.appendChild(el);
+  });
+  document.getElementById('plActions').style.display='flex';
+}
+function plSelectAll(){ document.querySelectorAll('.pe-check').forEach(c=>c.checked=true); }
+function plSelectNone(){ document.querySelectorAll('.pe-check').forEach(c=>c.checked=false); }
+
+async function downloadSelected(){
+  const selected=plEntries.filter((_,i)=>document.getElementById(`pe-${i}`)?.checked);
+  if (!selected.length) return alert('Select at least one video.');
+
+  const plBtn=document.getElementById('plDownloadBtn');
+  if (plBtn){ plBtn.disabled=true; plBtn.textContent='Queuing…'; }
+
+  let done=0, failed=0, cancelled=0;
+  const validEntries=selected.filter(e=>e.url);
+  const total=validEntries.length;
+
+  // Build per-item progress rows
+  let plProg=document.getElementById('plProgress');
+  if (!plProg){
+    plProg=document.createElement('div');
+    plProg.id='plProgress';
+    plProg.style.cssText='padding:10px 14px;border-top:1px solid var(--border)';
+    document.getElementById('plActions').insertAdjacentElement('afterend',plProg);
+  }
+  plProg.innerHTML='';
+
+  // Header with Cancel All button
+  const plProgHdr=document.createElement('div');
+  plProgHdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:8px';
+  plProgHdr.innerHTML=
+    '<span style="font-size:.72rem;font-weight:700;color:var(--ink2)">Downloading '+total+' video'+(total!==1?'s':'')+'</span>'+
+    '<button onclick="cancelAllJobs()" style="background:var(--red-light);color:var(--red);border:none;border-radius:7px;padding:4px 10px;font-size:.68rem;font-weight:700;cursor:pointer;font-family:var(--fh)">✕ Cancel All</button>';
+  plProg.appendChild(plProgHdr);
+
+  function makePlItem(entry,index){
+    const el=document.createElement('div');
+    el.id='pl-job-'+index;
+    el.style.cssText='margin-bottom:8px;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--card-bg)';
+    el.innerHTML=
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">'+
+        '<div style="font-size:.76rem;font-weight:600;color:var(--ink);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(entry.title||'Untitled')+'</div>'+
+        '<button id="plcancelbtn-'+index+'" style="display:none;background:var(--red-light);color:var(--red);border:none;border-radius:5px;padding:2px 7px;font-size:.6rem;font-weight:700;cursor:pointer;font-family:var(--fh);flex-shrink:0">✕</button>'+
+      '</div>'+
+      '<div style="height:4px;background:var(--border);border-radius:4px;overflow:hidden"><div id="plbar-'+index+'" style="height:100%;background:linear-gradient(90deg,var(--blue),#818cf8);border-radius:4px;width:0%;transition:width .35s ease"></div></div>'+
+      '<div style="display:flex;justify-content:space-between;margin-top:4px">'+
+        '<span id="pllbl-'+index+'" style="font-family:var(--fm);font-size:.58rem;color:var(--muted)">Waiting…</span>'+
+        '<span id="plpct-'+index+'" style="font-family:var(--fm);font-size:.58rem;font-weight:700;color:var(--blue)"></span>'+
+      '</div>';
+    return el;
+  }
+  validEntries.forEach(function(e,i){ plProg.appendChild(makePlItem(e,i)); });
+
+  // jobId lookup so cancel button knows which job to kill
+  var plItemJobIds = {};
+
+  async function processOne(entry,index){
+    const bar=document.getElementById('plbar-'+index);
+    const lbl=document.getElementById('pllbl-'+index);
+    const pct=document.getElementById('plpct-'+index);
+    const cancelBtn=document.getElementById('plcancelbtn-'+index);
+    function upUI(p,msg,color){
+      color=color||'var(--blue)';
+      if(bar) bar.style.width=p+'%';
+      if(lbl) lbl.textContent=msg;
+      if(pct){ pct.style.color=color; pct.textContent=p>0?Math.round(p)+'%':''; }
+    }
+    function hideCancelBtn(){ if(cancelBtn) cancelBtn.style.display='none'; }
+    try {
+      upUI(3,'Fetching info…');
+      const infoR=await fetch(SERVER+'/api/info',{method:'POST',headers:apiHeaders(),body:JSON.stringify({url:entry.url})});
+      const info=await infoR.json();
+      if(!infoR.ok||info.error) throw new Error(info.error||'Info failed');
+      const fid=plFmt==='mp3'?info.best_audio_format_id:info.best_video_format_id;
+      if(!fid) throw new Error('No suitable format found');
+
+      upUI(8,'Queuing…');
+      const dlR=await fetch(SERVER+'/api/download/format',{method:'POST',headers:apiHeaders(),
+        body:JSON.stringify({url:entry.url,format_id:fid,type:plFmt,title:entry.title||info.title||'download'})});
+      const dlData=await dlR.json();
+      const jobId=dlData.jobId;
+      if(!jobId) throw new Error('No job created');
+
+      // Show cancel button wired to this specific job
+      plItemJobIds[index]=jobId;
+      if(cancelBtn){
+        cancelBtn.style.display='inline';
+        cancelBtn.onclick=async function(){
+          cancelBtn.disabled=true; cancelBtn.textContent='…';
+          await cancelJob(jobId);
+        };
+      }
+
+      // Persist so a page refresh can reconnect
+      savePendingJob(jobId, { title:entry.title||info.title||'download', type:plFmt, url:entry.url, context:'playlist' });
+      if(dlData.position>1) upUI(8,'Queue position #'+dlData.position+'…');
+
+      await new Promise(function(resolve){
+        const sse=new EventSource(SERVER+'/api/job/'+jobId);
+        sse.onmessage=function(ev){
+          var job; try{job=JSON.parse(ev.data);}catch{return;}
+          var p=job.progress||0, m=job.message||'';
+          upUI(p,m);
+          if(job.status==='done'){
+            sse.close(); done++;
+            removePendingJob(jobId); hideCancelBtn();
+            upUI(100,'Saved','var(--green)');
+            if(bar) bar.style.background='var(--green)';
+            safeDownload(SERVER+'/api/dl/'+job.token, job.filename||(entry.title||'download')+'.'+plFmt);
+            notify('✅ Download ready!',job.filename+' saved.','nxl-pl-'+jobId);
+            resolve();
+          } else if(job.status==='cancelled'){
+            sse.close(); cancelled++;
+            removePendingJob(jobId); hideCancelBtn();
+            upUI(0,'Cancelled','var(--muted)');
+            if(bar) bar.style.background='var(--muted2)';
+            resolve();
+          } else if(job.status==='error'){
+            sse.close(); failed++;
+            removePendingJob(jobId); hideCancelBtn();
+            upUI(0,(job.error||'Failed'),'var(--red)');
+            if(bar) bar.style.background='var(--red)';
+            resolve();
+          }
+        };
+        sse.onerror=function(){ sse.close(); failed++; hideCancelBtn(); upUI(0,'Connection lost','var(--red)'); resolve(); };
+      });
+    } catch(e){
+      failed++;
+      hideCancelBtn();
+      upUI(0,e.message||'Error','var(--red)');
+      if(document.getElementById('plbar-'+index)) document.getElementById('plbar-'+index).style.background='var(--red)';
+    }
+  }
+
+  // Run with max 2 concurrent (matches server MAX_PARALLEL)
+  var pending=validEntries.map(function(e,i){return {e:e,i:i};});
+  async function worker(){
+    while(pending.length){ var item=pending.shift(); await processOne(item.e,item.i); }
+  }
+  var workers=[];
+  for(var s=0;s<Math.min(2,validEntries.length);s++) workers.push(worker());
+  await Promise.all(workers);
+
+  if(plBtn){ plBtn.disabled=false; plBtn.textContent='Download Selected'; }
+  var parts=[done+' downloaded'];
+  if(cancelled) parts.push(cancelled+' cancelled');
+  if(failed)    parts.push(failed+' failed');
+  var summary=parts.join(', ')+' of '+total;
+  notify('Playlist done!',summary,'nxl-pl-done');
+  const sb=document.getElementById('plStatusbar'), msg2=document.getElementById('plStatusMsg');
+  sb.className='statusbar show '+(failed?'err':cancelled&&!done?'err':'ok');
+  const spinEl=sb.querySelector('.spin'); if(spinEl) spinEl.style.display='none';
+  msg2.textContent=summary;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  History
+// ══════════════════════════════════════════════════════════════════════════════
+async function loadHistory(){
+  const list=document.getElementById('historyList');
+  list.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:.8rem">Loading…</div>';
+  try {
+    const r=await fetch(`${SERVER}/api/history`,{headers:apiHeaders()});
+    const {history}=await r.json();
+    if (!history||!history.length){
+      list.innerHTML='<div class="fmt-empty"><div class="fmt-empty-icon">🕓</div>No downloads yet.</div>'; return;
+    }
+    list.innerHTML='';
+    history.forEach(h=>{
+      const el=document.createElement('div'); el.className='history-entry';
+      el.innerHTML=`
+        <div class="he-icon">${h.ext==='mp3'?'🎵':'🎬'}</div>
+        <div class="he-info">
+          <div class="he-title">${h.title||h.filename||'Download'}</div>
+          <div class="he-meta">${h.ext?.toUpperCase()||''} · ${h.size_h||''} · ${timeAgo(h.ts)}</div>
+        </div>`;
+      list.appendChild(el);
+    });
+  } catch(e){ list.innerHTML=`<div class="fmt-empty">Failed to load history</div>`; }
+}
+async function clearHistory(){
+  if (!confirm('Clear your download history?')) return;
+  await fetch(`${SERVER}/api/history`,{method:'DELETE',headers:apiHeaders()});
+  loadHistory();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Cookies
+// ══════════════════════════════════════════════════════════════════════════════
+async function loadCookieStatus(){
+  try {
+    const r=await fetch(`${SERVER}/api/cookies`,{headers:apiHeaders()});
+    const d=await r.json();
+    const dot=document.getElementById('cookieDot');
+    const txt=document.getElementById('cookieStatusText');
+    if (d.hasCookies){ dot.classList.add('on'); txt.textContent=`Cookies saved (${d.size_kb} KB)`; }
+    else { dot.classList.remove('on'); txt.textContent='No cookies saved'; }
+  } catch {}
+}
+async function saveCookies(){
+  const content=document.getElementById('cookieBox').value.trim();
+  if (!content) return alert('Paste your cookies.txt content first.');
+  if (!content.includes('Netscape HTTP Cookie File') && !content.includes('\t')) {
+    if (!confirm('This doesn\'t look like a standard cookies.txt file. Save anyway?')) return;
+  }
+  const r=await fetch(`${SERVER}/api/cookies`,{method:'POST',headers:apiHeaders(),body:JSON.stringify({content})});
+  const d=await r.json();
+  if (d.ok){ alert('✅ Cookies saved! They will be used for your downloads.'); loadCookieStatus(); }
+  else alert('❌ '+d.error);
+}
+async function deleteCookies(){
+  if (!confirm('Remove your saved cookies?')) return;
+  await fetch(`${SERVER}/api/cookies`,{method:'DELETE',headers:apiHeaders()});
+  document.getElementById('cookieBox').value='';
+  loadCookieStatus();
+}
+function uploadCookieFile(){ document.getElementById('cookieFileInput').click(); }
+function loadCookieFile(e){
+  const file=e.target.files[0]; if (!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{ document.getElementById('cookieBox').value=ev.target.result; };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Server status dashboard
+// ══════════════════════════════════════════════════════════════════════════════
+async function loadStatus(){
+  const grid=document.getElementById('statusGrid');
+  grid.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:.8rem">Loading…</div>';
+  try {
+    const r=await fetch(`${SERVER}/api/status`);
+    const d=await r.json();
+    const tiles=[
+      {val:d.uptime_h,          lbl:'Uptime',           cls:''},
+      {val:d.cpu_count+' cores',lbl:'CPU',               cls:''},
+      {val:d.mem_used_pct+'%',  lbl:'Memory used',       cls:d.mem_used_pct>85?'red':d.mem_used_pct>65?'amber':'green'},
+      {val:d.tmp_size_mb+' MB', lbl:'Temp folder',       cls:''},
+      {val:d.jobs_active,       lbl:'Active downloads',  cls:d.jobs_active>0?'amber':''},
+      {val:d.queue_length,      lbl:'Queued',            cls:d.queue_length>0?'amber':''},
+      {val:d.jobs_done,         lbl:'Completed',         cls:'green'},
+      {val:d.jobs_error,        lbl:'Errors',            cls:d.jobs_error>0?'red':''},
+      {val:d.history_count,     lbl:'History entries',   cls:''},
+      {val:d.tokens_alive,      lbl:'Active tokens',     cls:''},
+      {val:d.node_version,      lbl:'Node.js',           cls:''},
+      {val:d.platform,          lbl:'Platform',          cls:''},
+    ];
+    grid.innerHTML=tiles.map(t=>`
+      <div class="stat-tile ${t.cls}">
+        <div class="stat-tile-val">${t.val??'—'}</div>
+        <div class="stat-tile-lbl">${t.lbl}</div>
+      </div>`).join('');
+  } catch(e){ grid.innerHTML=`<div class="fmt-empty">✗ Could not reach server<br/><small>${e.message}</small></div>`; }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  FAQ
+// ══════════════════════════════════════════════════════════════════════════════
+function faq(el){
+  const item=el.closest('.faq-item'), open=item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i=>i.classList.remove('open'));
+  if (!open) item.classList.add('open');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Cancel
+// ══════════════════════════════════════════════════════════════════════════════
+async function cancelJob(jobId) {
+  try {
+    const r = await fetch(`${SERVER}/api/job/${jobId}`, { method:'DELETE', headers:apiHeaders() });
+    const d = await r.json();
+    if (!d.ok && !d.message) { console.warn('Cancel failed:', d.error); return false; }
+    removePendingJob(jobId);
+    return true;
+  } catch(e) { console.error('cancelJob error', e); return false; }
+}
+
+async function cancelAllJobs() {
+  if (!confirm('Cancel all active and queued downloads?')) return;
+  try {
+    await fetch(`${SERVER}/api/jobs`, { method:'DELETE', headers:apiHeaders() });
+    // Clear all pending from localStorage
+    Object.keys(pendingJobs).forEach(id => removePendingJob(id));
+    loadActiveJobs();
+  } catch(e) { console.error('cancelAll error', e); }
+}
+
+// Poll session jobs and render the active-downloads panel in Settings
+async function loadActiveJobs() {
+  const list    = document.getElementById('activeJobsList');
+  const countEl = document.getElementById('activeJobCount');
+  const allBtn  = document.getElementById('cancelAllBtn');
+  if (!list) return;
+
+  let sessionJobs = [];
+  try {
+    const r = await fetch(`${SERVER}/api/sessions/${SESSION_ID}/jobs`);
+    const d = await r.json();
+    sessionJobs = (d.jobs || []).filter(j =>
+      j.status === 'running' || j.status === 'pending'
+    );
+  } catch {}
+
+  if (!sessionJobs.length) {
+    list.innerHTML = '<div style="font-size:.76rem;color:var(--muted);padding:6px 0">No active downloads.</div>';
+    if (countEl) { countEl.textContent='0'; countEl.style.display='none'; }
+    if (allBtn)  allBtn.style.display = 'none';
+    return;
+  }
+
+  if (countEl) { countEl.textContent = sessionJobs.length; countEl.style.display='inline'; }
+  if (allBtn)  allBtn.style.display = 'inline-flex';
+
+  list.innerHTML = '';
+  for (const j of sessionJobs) {
+    const row = document.createElement('div');
+    row.className = 'active-job-row';
+    row.id = 'ajr-' + j.jobId;
+    row.innerHTML =
+      '<div class="ajr-info">' +
+        '<div class="ajr-title">' + (j.title || 'Download') + '</div>' +
+        '<div class="ajr-bar-wrap"><div class="ajr-bar" style="width:' + (j.progress||0) + '%"></div></div>' +
+        '<div class="ajr-meta">' +
+          (j.status === 'pending' ? '⏳ Queued' : '⬇️ ' + (j.message||'Downloading…')) +
+          (j.progress > 0 ? ' · ' + Math.round(j.progress) + '%' : '') +
+        '</div>' +
+      '</div>' +
+      '<button class="ajr-cancel" onclick="cancelJobFromSettings(\'' + j.jobId + '\')" id="ajrcbtn-' + j.jobId + '">✕ Cancel</button>';
+    list.appendChild(row);
+
+    // Live-update this row via SSE
+    attachSettingsRowSSE(j.jobId);
+  }
+}
+
+function attachSettingsRowSSE(jobId) {
+  const sse = new EventSource(`${SERVER}/api/job/${jobId}`);
+  sse.onmessage = (ev) => {
+    let job; try { job = JSON.parse(ev.data); } catch { return; }
+    const bar  = document.querySelector('#ajr-' + jobId + ' .ajr-bar');
+    const meta = document.querySelector('#ajr-' + jobId + ' .ajr-meta');
+    if (bar)  bar.style.width = (job.progress||0) + '%';
+    if (meta) meta.textContent =
+      (job.status==='pending' ? '⏳ Queued' : '⬇️ ' + (job.message||'Downloading…')) +
+      (job.progress > 0 ? ' · ' + Math.round(job.progress) + '%' : '');
+
+    if (job.status === 'done' || job.status === 'error' || job.status === 'cancelled') {
+      sse.close();
+      const row = document.getElementById('ajr-' + jobId);
+      if (row) {
+        // Flash result then fade out
+        if (job.status === 'done') {
+          const b = row.querySelector('.ajr-bar'); if(b) b.style.background='var(--green)';
+          if (meta) meta.textContent = '✓ Done';
+        } else {
+          const b = row.querySelector('.ajr-bar'); if(b) b.style.background='var(--red)';
+          if (meta) meta.textContent = job.status === 'cancelled' ? '✕ Cancelled' : '✗ Failed';
+        }
+        setTimeout(() => { row.remove(); refreshActiveJobsCount(); }, 2500);
+      }
+    }
+  };
+  sse.onerror = () => sse.close();
+}
+
+function refreshActiveJobsCount() {
+  const list    = document.getElementById('activeJobsList');
+  const countEl = document.getElementById('activeJobCount');
+  const allBtn  = document.getElementById('cancelAllBtn');
+  const remaining = list ? list.querySelectorAll('.active-job-row').length : 0;
+  if (countEl) { countEl.textContent = remaining; countEl.style.display = remaining ? 'inline' : 'none'; }
+  if (allBtn)  allBtn.style.display = remaining ? 'inline-flex' : 'none';
+  if (list && !remaining)
+    list.innerHTML = '<div style="font-size:.76rem;color:var(--muted);padding:6px 0">No active downloads.</div>';
+}
+
+async function cancelJobFromSettings(jobId) {
+  const btn = document.getElementById('ajrcbtn-' + jobId);
+  if (btn) { btn.disabled = true; btn.textContent = 'Cancelling…'; }
+  const ok = await cancelJob(jobId);
+  if (!ok && btn) { btn.disabled = false; btn.textContent = '✕ Cancel'; }
+  // Row will auto-remove itself when SSE receives the cancelled status
+  // Also restore any matching format row in the download tab
+  restoreAllCancelledRows();
+}
+
+function restoreAllCancelledRows() {
+  // Nothing to do here — the active SSE onmessage in downloadFormat already handles
+  // 'cancelled' status by calling restoreRow and hideProgress automatically.
+  // This function is kept as a no-op safety stub.
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Job persistence (survives page refresh & server restart)
+// ══════════════════════════════════════════════════════════════════════════════
+function savePendingJob(jobId, meta) {
+  pendingJobs[jobId] = { ...meta, savedAt: Date.now() };
+  localStorage.setItem('nxl_pending', JSON.stringify(pendingJobs));
+}
+function removePendingJob(jobId) {
+  delete pendingJobs[jobId];
+  localStorage.setItem('nxl_pending', JSON.stringify(pendingJobs));
+}
+
+// Called on page load — polls server for each saved jobId and re-attaches UI
+async function reconnectPendingJobs() {
+  const jobIds = Object.keys(pendingJobs);
+  if (!jobIds.length) return;
+
+  // Also ask server for ALL session jobs in case localStorage is stale/missing
+  let serverJobs = [];
+  try {
+    const r = await fetch(`${SERVER}/api/sessions/${SESSION_ID}/jobs`);
+    const d = await r.json();
+    serverJobs = d.jobs || [];
+  } catch {}
+
+  // Merge: server jobs take priority, localStorage fills in context (title, url etc.)
+  const allJobIds = new Set([...jobIds, ...serverJobs.map(j=>j.jobId)]);
+
+  for (const jobId of allJobIds) {
+    const saved   = pendingJobs[jobId] || {};
+    const fromSrv = serverJobs.find(j=>j.jobId===jobId);
+
+    // Skip jobs older than 30 min in localStorage with no server entry
+    if (!fromSrv && saved.savedAt && Date.now()-saved.savedAt > 30*60*1000) {
+      removePendingJob(jobId); continue;
+    }
+    // Skip already-terminal jobs that somehow stayed in storage
+    if (fromSrv && (fromSrv.status==='error' || fromSrv.status==='cancelled')) {
+      removePendingJob(jobId); continue;
+    }
+
+    const title   = saved.title || fromSrv?.title || 'Download';
+    const context = saved.context || 'single';
+
+    if (fromSrv?.status === 'done') {
+      // File is ready — show download banner immediately
+      removePendingJob(jobId);
+      showRecoveredDownload(jobId, fromSrv, title, context);
+      continue;
+    }
+
+    // Still running/pending — show recovery panel and re-open SSE
+    showRecoveryPanel(jobId, title, context, fromSrv?.progress||0, fromSrv?.message||'Reconnecting…');
+    attachRecoverySSE(jobId, title, context);
+  }
+}
+
+function showRecoveryPanel(jobId, title, context, pct, msg) {
+  let wrap = document.getElementById('recoveryWrap');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'recoveryWrap';
+    wrap.style.cssText = 'margin-top:12px';
+    const card = document.querySelector('#tab-download .card');
+    card.insertAdjacentElement('afterend', wrap);
+  }
+  let item = document.getElementById('rjob-'+jobId);
+  if (!item) {
+    item = document.createElement('div');
+    item.id = 'rjob-'+jobId;
+    item.style.cssText = 'background:var(--card-bg);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:10px;box-shadow:var(--shadow)';
+    item.innerHTML =
+      '<div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">'+
+        '<span style="font-size:.7rem;font-weight:700;background:var(--amber-light);color:var(--amber);padding:2px 8px;border-radius:6px" id="rtag-'+jobId+'">RESUMING</span>'+
+        '<span style="font-size:.78rem;font-weight:600;color:var(--ink);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+title+'</span>'+
+        '<button id="rcancelbtn-'+jobId+'" onclick="cancelRecoveryJob(\''+jobId+'\')" style="background:var(--red-light);color:var(--red);border:none;border-radius:6px;padding:3px 9px;font-size:.66rem;font-weight:700;cursor:pointer;font-family:var(--fh);flex-shrink:0">✕ Cancel</button>'+
+      '</div>'+
+      '<div style="padding:10px 14px">'+
+        '<div style="height:5px;background:var(--border);border-radius:5px;overflow:hidden;margin-bottom:6px">'+
+          '<div id="rbar-'+jobId+'" style="height:100%;background:linear-gradient(90deg,var(--amber),var(--blue));border-radius:5px;width:'+pct+'%;transition:width .4s ease"></div>'+
+        '</div>'+
+        '<div style="display:flex;justify-content:space-between">'+
+          '<span id="rlbl-'+jobId+'" style="font-family:var(--fm);font-size:.62rem;color:var(--muted)">'+msg+'</span>'+
+          '<span id="rpct-'+jobId+'" style="font-family:var(--fm);font-size:.62rem;font-weight:700;color:var(--blue)">'+( pct>0?pct+'%':'' )+'</span>'+
+        '</div>'+
+      '</div>';
+    wrap.appendChild(item);
+    // Switch to download tab so user sees it
+    switchTab('download');
+    setStatus('🔄 Reconnected to '+Object.keys(pendingJobs).length+' running download(s)','loading');
+  }
+}
+
+function updateRecoveryPanel(jobId, pct, msg) {
+  const bar = document.getElementById('rbar-'+jobId);
+  const lbl = document.getElementById('rlbl-'+jobId);
+  const pctEl= document.getElementById('rpct-'+jobId);
+  if (bar) bar.style.width = pct+'%';
+  if (lbl) lbl.textContent = msg;
+  if (pctEl) pctEl.textContent = pct>0 ? Math.round(pct)+'%' : '';
+}
+
+function finishRecoveryPanel(jobId, state, msg) {
+  // state: 'done' | 'error' | 'cancelled'
+  const item   = document.getElementById('rjob-'+jobId);
+  if (!item) return;
+  const bar    = document.getElementById('rbar-'+jobId);
+  const lbl    = document.getElementById('rlbl-'+jobId);
+  const pctEl  = document.getElementById('rpct-'+jobId);
+  const tag    = document.getElementById('rtag-'+jobId);
+  const canBtn = document.getElementById('rcancelbtn-'+jobId);
+
+  if (canBtn) canBtn.style.display = 'none';
+
+  const colors = {
+    done:      { bar:'var(--green)', tag:'var(--green-light)', tagTxt:'var(--green)',  label:'DONE'      },
+    error:     { bar:'var(--red)',   tag:'var(--red-light)',   tagTxt:'var(--red)',    label:'FAILED'    },
+    cancelled: { bar:'var(--muted2)',tag:'var(--bg3)',         tagTxt:'var(--muted)',  label:'CANCELLED' },
+  };
+  const c = colors[state] || colors.error;
+
+  if (bar)   { bar.style.width = state==='done'?'100%':'0%'; bar.style.background = c.bar; }
+  if (lbl)   lbl.textContent = msg;
+  if (pctEl) pctEl.textContent = state==='done' ? '✓' : (state==='cancelled' ? '✕' : '✗');
+  if (tag)   { tag.textContent = c.label; tag.style.background = c.tag; tag.style.color = c.tagTxt; }
+
+  // Auto-remove after a moment
+  const delay = state==='done' ? 8000 : 3500;
+  setTimeout(()=>{ item.remove(); checkRemoveRecoveryWrap(); }, delay);
+}
+
+function showRecoveredDownload(jobId, job, title, context) {
+  // Auto-trigger the save dialog immediately — no button needed
+  if (job.token) {
+    safeDownload(`${SERVER}/api/dl/${job.token}`, job.filename || title || 'download');
+  }
+
+  let wrap = document.getElementById('recoveryWrap');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'recoveryWrap';
+    wrap.style.cssText = 'margin-top:12px';
+    const card = document.querySelector('#tab-download .card');
+    card.insertAdjacentElement('afterend', wrap);
+  }
+  const item = document.createElement('div');
+  item.style.cssText='background:var(--green-light);border:1px solid var(--green);border-radius:var(--r-lg);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:10px';
+  item.innerHTML =
+    '<span style="font-size:1.2rem">✅</span>'+
+    '<div style="flex:1;min-width:0">'+
+      '<div style="font-size:.78rem;font-weight:700;color:var(--green)">Auto-saved to Downloads</div>'+
+      '<div style="font-size:.68rem;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(job.filename||title)+'</div>'+
+    '</div>'+
+    '<button onclick="safeDownload(\''+SERVER+'/api/dl/'+job.token+'\',\''+(job.filename||title).replace(/'/g,"\\'")+ '\');this.textContent=\'↓ Again\';" '+
+      'style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-family:var(--fh);font-weight:700;font-size:.76rem;cursor:pointer;flex-shrink:0">'+
+      '↓ Again'+
+    '</button>';
+  wrap.appendChild(item);
+  switchTab('download');
+  setTimeout(() => { item.remove(); checkRemoveRecoveryWrap(); }, 12000);
+}
+
+function checkRemoveRecoveryWrap() {
+  const wrap = document.getElementById('recoveryWrap');
+  if (wrap && !wrap.children.length) wrap.remove();
+}
+
+function attachRecoverySSE(jobId, title, context) {
+  let retries = 0;
+  let stopped = false;
+
+  // Add to console immediately so it's visible
+  addConsoleJob(jobId, { title, type: pendingJobs[jobId]?.type || 'mp4', status:'pending', message:'Reconnecting…' });
+
+  function connect() {
+    if (stopped) return;
+    const sse = new EventSource(`${SERVER}/api/job/${jobId}`);
+    sse.onopen = () => { retries = 0; };
+    sse.onmessage = (ev) => {
+      let job; try { job = JSON.parse(ev.data); } catch { return; }
+      const pct = job.progress||0, msg = job.message||'';
+      updateRecoveryPanel(jobId, pct, msg);
+      updateConsoleJobLive(jobId, { status: job.status, progress: pct, message: msg });
+
+      if (job.status === 'done') {
+        stopped = true; sse.close(); removePendingJob(jobId);
+        finishRecoveryPanel(jobId, 'done', '✓ '+(job.filename||title));
+        consoleJobDone(jobId, job);
+        scheduleConsoleRemove(jobId, 60000);
+        if (job.token) safeDownload(`${SERVER}/api/dl/${job.token}`, job.filename || title || 'download');
+        notify('✅ Auto-saved!', (job.filename||title)+' saved to Downloads', 'nxl-rec-'+jobId);
+        setStatus('✓ Saved: '+(job.filename||title), 'ok');
+        clearStatus();
+      } else if (job.status === 'error') {
+        stopped = true; sse.close(); removePendingJob(jobId);
+        finishRecoveryPanel(jobId, 'error', '✗ '+(job.error||'Failed'));
+        updateConsoleJobLive(jobId, { status:'error', progress:0 });
+        scheduleConsoleRemove(jobId, 8000);
+        setStatus('✗ '+(job.error||'Download failed'), 'err');
+      } else if (job.status === 'cancelled') {
+        stopped = true; sse.close(); removePendingJob(jobId);
+        finishRecoveryPanel(jobId, 'cancelled', '✕ Cancelled');
+        updateConsoleJobLive(jobId, { status:'cancelled', progress:0 });
+        scheduleConsoleRemove(jobId, 4000);
+        clearStatus();
+      }
+    };
+    sse.onerror = () => {
+      sse.close();
+      if (stopped) return;
+      retries++;
+      const delay = Math.min(2000 * retries, 20000);
+      updateRecoveryPanel(jobId, 0, `Server offline — retrying in ${Math.round(delay/1000)}s…`);
+      updateConsoleJobLive(jobId, { message: `Reconnecting in ${Math.round(delay/1000)}s…` });
+      setTimeout(connect, delay);
+    };
+  }
+  connect();
+}
+
+async function cancelRecoveryJob(jobId) {
+  const btn = document.getElementById('rcancelbtn-'+jobId);
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  await cancelJob(jobId);
+  // SSE onmessage will receive 'cancelled' and call finishRecoveryPanel automatically
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Boot
+// ══════════════════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', ()=>{
+  loadPrefs();
+  reconnectPendingJobs();   // ← re-attach any downloads that survived page refresh / server restart
+
+  document.getElementById('urlInput').addEventListener('keydown', e=>{ if (e.key==='Enter') handleFetch(); });
+  document.getElementById('plInput').addEventListener('keydown', e=>{ if (e.key==='Enter') handlePlaylistFetch(); });
+
+  document.getElementById('urlInput').addEventListener('focus', async ()=>{
+    const inp=document.getElementById('urlInput');
+    if (inp.value) return;
+    if (!document.getElementById('prefAutoPaste').checked) return;
+    try {
+      const t=await navigator.clipboard.readText();
+      if (t&&(t.startsWith('http://')||t.startsWith('https://'))) inp.value=t;
+    } catch {}
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  Service Worker + Web Push bootstrap
+// ══════════════════════════════════════════════════════════════════════════════
+const SW_SRC = `
+const CACHE = 'nxl-v6';
+const SHELL = ['/'];
+
+// ── Install ───────────────────────────────────────────────────────────────────
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll(SHELL).catch(()=>{})).then(()=>self.skipWaiting())
+  );
+});
+
+// ── Activate ──────────────────────────────────────────────────────────────────
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys()
+      .then(ks => Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k))))
+      .then(()=>self.clients.claim())
+  );
+});
+
+// ── Fetch (network-first for API, cache-fallback for page) ────────────────────
+self.addEventListener('fetch', e => {
+  if (e.request.url.includes('/api/')) return; // never cache API
+  if (e.request.mode === 'navigate') {
+    e.respondWith(fetch(e.request).catch(()=>caches.match('/')));
+    return;
+  }
+  e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));
+});
+
+// ── Push received ─────────────────────────────────────────────────────────────
+self.addEventListener('push', e => {
+  let data = {};
+  try { data = e.data.json(); } catch {}
+
+  const type  = data.type || 'info';
+  const title = data.title || 'NexLoad';
+  let body, icon, badge, tag, actions, requireInteraction;
+
+  icon  = '/favicon.ico';
+  badge = '/favicon.ico';
+
+  if (type === 'done') {
+    body               = (data.filename || 'Your file') + ' is ready — ' + (data.size_h || '');
+    tag                = 'nxl-done-' + data.jobId;
+    requireInteraction = true;   // stays in tray until user acts
+    actions = [
+      { action: 'save',   title: '⬇ Save file' },
+      { action: 'dismiss',title: 'Dismiss'     },
+    ];
+  } else if (type === 'progress') {
+    body    = data.message || data.pct + '% downloaded';
+    tag     = 'nxl-prog-' + data.jobId;  // same tag = replaces previous progress notif
+    actions = [{ action: 'cancel', title: '✕ Cancel' }];
+    requireInteraction = false;
+  } else if (type === 'error') {
+    body    = data.message || 'Download failed';
+    tag     = 'nxl-err-'  + data.jobId;
+    actions = [{ action: 'open', title: 'View details' }];
+    requireInteraction = false;
+  } else {
+    body = data.message || '';
+    tag  = 'nxl-info';
+    requireInteraction = false;
+  }
+
+  e.waitUntil(
+    self.registration.showNotification(title, {
+      body, icon, badge, tag, actions, requireInteraction,
+      data,   // pass full payload so notificationclick can use it
+      silent: type === 'progress',  // progress updates are silent
+    })
+  );
+});
+
+// ── Notification click ────────────────────────────────────────────────────────
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const data   = e.notification.data || {};
+  const action = e.action;
+
+  e.waitUntil(
+    clients.matchAll({ type:'window', includeUncontrolled:true }).then(cs => {
+      // Try to focus existing NexLoad tab
+      const existing = cs.find(c => c.url.includes(self.location.origin));
+
+      if (action === 'save' && data.token) {
+        // Post message to page — page will call triggerDirectDownload
+        const msg = { type:'SW_SAVE', token: data.token, filename: data.filename };
+        if (existing) { existing.focus(); existing.postMessage(msg); }
+        else clients.openWindow('/').then(w => w && setTimeout(()=>w.postMessage(msg),1500));
+
+      } else if (action === 'cancel' && data.jobId) {
+        const msg = { type:'SW_CANCEL', jobId: data.jobId };
+        if (existing) { existing.postMessage(msg); }
+        // Fire cancel via fetch even if no tab is open
+        fetch('/api/job/' + data.jobId, { method:'DELETE' }).catch(()=>{});
+
+      } else {
+        // Default: just focus/open the app
+        if (existing) existing.focus();
+        else clients.openWindow('/');
+      }
+    })
+  );
+});
+`;
+
+let swRegistration = null;
+
+if ('serviceWorker' in navigator) {
+  // Register from /sw.js (real origin URL) — blob: URLs break push in Chrome
+  navigator.serviceWorker.register('/sw.js', { scope: '/' })
+    .then(reg => {
+      swRegistration = reg;
+      // Listen for messages posted by SW (save / cancel actions from notification)
+      navigator.serviceWorker.addEventListener('message', async ev => {
+        const msg = ev.data;
+        if (!msg) return;
+        if (msg.type === 'SW_SAVE' && msg.token) {
+          safeDownload(`${SERVER}/api/dl/${msg.token}`, msg.filename || 'download');
+        }
+        if (msg.type === 'SW_CANCEL' && msg.jobId) {
+          await cancelJob(msg.jobId);
+        }
+      });
+      // Init push after SW is ready
+      initPush();
+    })
+    .catch(err => console.warn('[SW] Registration failed:', err));
+}
+
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBanner').style.display='flex';});
+document.getElementById('installBtn').addEventListener('click',async()=>{
+  if(!deferredPrompt)return;deferredPrompt.prompt();
+  const{outcome}=await deferredPrompt.userChoice;
+  deferredPrompt=null;document.getElementById('installBanner').style.display='none';
+  if(outcome==='accepted')setStatus('✓ App installed!','ok');
+});
+window.addEventListener('appinstalled',()=>document.getElementById('installBanner').style.display='none');
+</script>
+</body>
+</html>
